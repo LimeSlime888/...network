@@ -87,3 +87,25 @@ n_socket.onmessage = function(msg){
 				  data.op, data.admin, data.staff, data.color, data.date || Date.now(), data.dataObj);
 	}
 }
+sendChat = function() {
+	var chatText = elm.chatbar.value;
+	elm.chatbar.value = "";
+	var opts = {};
+	if (selectedChatTab == 2) opts.location = 'network';
+	if(defaultChatColor != null) {
+		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
+	}
+	api_chat_send(chatText, opts);
+}
+network.chat = function(message, location, nickname, color, customMeta) {
+	let data = {
+		kind: "chat",
+		nickname,
+		message,
+		location,
+		color,
+		customMeta
+	};
+	if (location == 'network') n_socket.send(JSON.stringify(data));
+	else network.transmit(data);
+}
