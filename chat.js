@@ -1,8 +1,8 @@
 n_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/ws/');
+elm.chat_page_tab.style.minWidth = '80px';
 if (state.worldModel.no_chat_global) {
-	elm.chat_upper.style.textAlign = '';
-	elm.chat_page_tab.style.minWidth = '80px';
-	elm.chat_page_tab.style.display = '';
+    elm.chat_upper.style.textAlign = '';
+    elm.chat_page_tab.style.display = '';
 	elm.usr_online.style.paddingLeft = '';
 }
 n_chatTab = document.createElement('div');
@@ -18,6 +18,11 @@ n_chatfield.style.display = 'none';
 n_chatTab.id = 'network_chatfield';
 elm.network_chatfield = n_chatTab;
 elm.global_chatfield.after(n_chatfield);
+n_unreadText = document.createElement('b');
+n_unreadText.classList.add('unread');
+n_unreadText.id = 'network_unread';
+elm.network_unread = n_unreadText;
+n_chatTab.append(n_unreadText);
 var chatNetworkUnread = 0;
 var chatAdditionsNetwork = [];
 var initNetworkTabOpen = false;
@@ -66,15 +71,15 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 	insertNewChatElementsIntoChatfield(n_chatfield, chatAdditionsNetwork);
 }
 function n_onhistory(data) {
-	w.emit("chathistory", data)
-	var page_prev = data.page_chat_prev;
-	for(var p = 0; p < page_prev.length; p++) {
-		var chat = page_prev[p];
-		if (chat.hide) continue;
-		var type = chatType(chat.registered, chat.nickname, chat.realUsername);
-		n_addChat(chat.id, type, chat.nickname, chat.message, chat.realUsername,
+    w.emit("chathistory", data)
+    var page_prev = data.page_chat_prev;
+    for(var p = 0; p < page_prev.length; p++) {
+        var chat = page_prev[p];
+        if (chat.hide) continue;
+        var type = chatType(chat.registered, chat.nickname, chat.realUsername);
+        n_addChat(chat.id, type, chat.nickname, chat.message, chat.realUsername,
 				  chat.op, chat.admin, chat.staff, chat.color, chat.date, chat);
-	}
+    }
 }
 n_socket.onmessage = function(msg){
 	let data = JSON.parse(msg.data);
@@ -82,20 +87,24 @@ n_socket.onmessage = function(msg){
 		n_onhistory(data)
 	} else if (data.kind == 'chat') {
 		if (data.location != 'page') return;
-		data.type = chatType(data.registered, data.nickname, data.realUsername);
+		if (!(chatOpen && selectedChatTab == 2)) {
+			++chatNetworkUnread;
+			updateUnread();
+		}
+        data.type = chatType(data.registered, data.nickname, data.realUsername);
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
 				  data.op, data.admin, data.staff, data.color, data.date || Date.now(), data.dataObj);
 	}
 }
 sendChat = function() {
-	var chatText = elm.chatbar.value;
-	elm.chatbar.value = "";
-	var opts = {};
+    var chatText = elm.chatbar.value;
+    elm.chatbar.value = "";
+    var opts = {};
 	if (selectedChatTab == 2) opts.location = 'network';
-	if(defaultChatColor != null) {
-		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
-	}
-	api_chat_send(chatText, opts);
+    if(defaultChatColor != null) {
+        opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
+    }
+    api_chat_send(chatText, opts);
 }
 network.chat = function(message, location, nickname, color, customMeta) {
 	let data = {
@@ -108,4 +117,33 @@ network.chat = function(message, location, nickname, color, customMeta) {
 	};
 	if (location == 'network') n_socket.send(JSON.stringify(data));
 	else network.transmit(data);
+}
+function updateUnread() {
+	var total = elm.total_unread;
+	var page = elm.page_unread;
+	var global = elm.global_unread;
+	var network = elm.network_unread;
+	var totalCount = chatPageUnread + chatGlobalUnread + chatNetworkUnread;
+	total.style.display = "none";
+	network.style.display = "none";
+	global.style.display = "none";
+	page.style.display = "none";
+	if(totalCount) {
+		total.style.display = "";
+		total.innerText = totalCount > 99 ? "99+" : "(" + totalCount + ")";
+	}
+	if(chatOpen) { // don't want to stretch tab width before it's initially calculated
+		if(chatPageUnread) {
+			page.style.display = "";
+			page.innerText = chatPageUnread > 99 ? "99+" : "(" + chatPageUnread + ")";
+		}
+		if(chatGlobalUnread) {
+			global.style.display = "";
+			global.innerText = chatGlobalUnread > 99 ? "99+" : "(" + chatGlobalUnread + ")";
+		}
+		if(chatNetworkUnread) {
+			network.style.display = "";
+			network.innerText = chatNetworkUnread > 99 ? "99+" : "(" + chatNetworkUnread + ")";
+		}
+	}
 }
