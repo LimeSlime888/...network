@@ -309,7 +309,7 @@ var nm_network = {
 			kind: "clear_tile",
 			data: data
 		};
-		network.transmit(req);
+		nm_network.transmit(req);
 	}
 };
 var nm_events = {
@@ -697,7 +697,7 @@ function nm_registerCommands() {
 	}, ['x', 'user', 'type', 'expire', '...info'], 'update a limit');
 
 	register_chat_command('...clear', function(args){
-		network.clear_tile({tileX: +args[0], tileY: 0});
+		nm_network.clear_tile({tileX: +args[0], tileY: 0});
 		clientChatResponse(`Cleared global limit x=${+args[0]}.`)
 	}, ['x'], 'clear a user limit');
 
