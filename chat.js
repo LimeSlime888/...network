@@ -696,6 +696,28 @@ function nm_registerCommands() {
 		let x = nm_updateLimit(...args);
 	}, ['x', 'user', 'type', 'expire', '...info'], 'update a limit');
 
+	register_chat_command('...updateid', function(args) {
+		let limit = nm_userLimits[args[0]];
+		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist.`);
+		let duration = +args[3];
+		if (isNaN(duration)) {
+			duration = null
+		} else if (duration <= 0) {
+			duration = args[3] = Infinity
+		} else {
+			args[3] = Date.now() + duration * 1000
+		}
+		for (let i in args) {
+			i = +i;
+			if (args[i] == '*') {
+				if (i == 2) args[2] = limit.type;
+				else args[i] = null;
+			}
+		}
+		args.splice(4, 0, false, false);
+		let x = nm_updateLimit(...args);
+	}, ['x', 'id', 'type', 'expire', '...info'], 'update a limit (to an anon ID if required)');
+
 	register_chat_command('...clear', function(args){
 		nm_network.clear_tile({tileX: +args[0], tileY: 0});
 		clientChatResponse(`Cleared global limit x=${+args[0]}.`)
