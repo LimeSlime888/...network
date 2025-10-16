@@ -658,7 +658,7 @@ function nm_registerCommands() {
 			if (args[2] == Infinity) clientChatResponse(`Limited ID ${args[0]} forever`)
 			else clientChatResponse(`Limited ID ${args[0]} until ${new Date(args[2]).toISOString()}`);
 		}
-	}, ['id', 'type', 'expire', '...info'], 'apply a limit to an id');
+	}, ['id', 'type', 'expire', '...info'], 'apply a limit to an anon id');
 
 	register_chat_command('...limitall', function(args) {
 		let duration = +args[1];
@@ -694,7 +694,7 @@ function nm_registerCommands() {
 		}
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
-	}, ['x', 'user', 'type', 'expire', '...info'], 'update a limit');
+	}, ['x', 'user', 'type', 'expire', '...info'], 'update a user limit');
 
 	register_chat_command('...updateid', function(args) {
 		let limit = nm_userLimits[args[0]];
@@ -716,7 +716,7 @@ function nm_registerCommands() {
 		}
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
-	}, ['x', 'id', 'type', 'expire', '...info'], 'update a limit (to an anon ID if required)');
+	}, ['x', 'id', 'type', 'expire', '...info'], 'update a user limit (to an anon id if required)');
 
 	register_chat_command('...clear', function(args){
 		nm_network.clear_tile({tileX: +args[0], tileY: 0});
