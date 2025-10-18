@@ -249,7 +249,7 @@ you're a moderator for ...network. use /...help or go to /...network/limits for 
 	}
 }
 nm_fetchMods();
-var nm_socket = ReconnectingWebSocket('wss://ourworldoftext.com/...network/limits/ws/?hide=1');
+var nm_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/limits/ws/?hide=1');
 nm_socket.onmessage = function(msg) {
 	var data = JSON.parse(msg.data);
 	var kind = data.kind;
