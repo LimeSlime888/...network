@@ -232,6 +232,11 @@ function n_onChat(e) {
 		}
 	}
 	userLastChatted[user] = date;
+	if (nm_mods.includes(e.realUsername)) {
+		e.dataObj ??= {};
+		e.dataObj.rankName = 'mod';
+		e.dataObj.rankColor = '#7befef';
+	}
 }
 var nm_mods = [];
 async function nm_fetchMods() {
