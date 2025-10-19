@@ -15,7 +15,7 @@ elm.chat_global_tab.after(n_chatTab);
 var n_chatfield = document.createElement('div');
 n_chatfield.classList.add('chatfield');
 n_chatfield.style.display = 'none';
-n_chatTab.id = 'network_chatfield';
+n_chatfield.id = 'network_chatfield';
 elm.network_chatfield = n_chatTab;
 elm.global_chatfield.after(n_chatfield);
 var n_unreadText = document.createElement('b');
