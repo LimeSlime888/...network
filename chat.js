@@ -44,6 +44,9 @@ n_chatTab.addEventListener("click", function() {
 		n_chatfield.scrollTop = n_chatfield.scrollHeight;
 	}
 });
+n_chatfield.addEventListener('wheel', function(e){
+	e.stopPropagation();
+});
 elm.chat_page_tab.addEventListener('click', function(){
 	n_chatTab.classList.remove('chat_tab_selected');
 	n_chatfield.style.display = 'none';
