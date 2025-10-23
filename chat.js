@@ -1,3 +1,5 @@
+const n_networkIndicator = "hiiii hello :333";
+
 var n_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/ws/');
 elm.chat_page_tab.style.minWidth = '80px';
 if (state.worldModel.no_chat_global) {
@@ -80,9 +82,10 @@ function clientChatResponse(message) {
 function n_onhistory(data) {
 	w.emit("chathistory", data)
 	var page_prev = data.page_chat_prev;
+	var lastChatted = {};
 	for(var p = 0; p < page_prev.length; p++) {
 		var chat = page_prev[p];
-		n_onChat(chat);
+		n_onChat(chat, lastChatted);
 		if (chat.hide) continue;
 		var type = chatType(chat.registered, chat.nickname, chat.realUsername);
 		n_addChat(chat.id, type, chat.nickname, chat.message, chat.realUsername,
@@ -152,14 +155,14 @@ w.on('chatsend', function(e){
 			return clientChatResponse(`You're muted.`)
 		}
 	}
-	if (affects.l && lastSentMessage) {
-		let offset = date - lastSentMessage - affects.l*1000;
+	if (affects.l && nm_lastSentMessage) {
+		let offset = date - nm_lastSentMessage - affects.l*1000;
 		if (offset < 0) {
 			e.cancel = true;
 			return clientChatResponse(`Chat again in ${offset/1000} seconds.`);
 		}
 	}
-	lastSentMessage = date;
+	nm_lastSentMessage = date;
 });
 network.chat = function(message, location, nickname, color, customMeta) {
 	let data = {
@@ -202,11 +205,17 @@ function updateUnread() {
 		}
 	}
 }
-function n_onChat(e) {
+var nm_lastMessageDates = [];
+function n_onChat(e, untimed) {
+	e.network = true;
+	w.emit('chatmod', e);
+	if (e.hide) return;
+	let date = untimed ? e.date : Date.now();
+	if (nm_deletedMessages.includes(date)) return e.hide = true;
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
 	let user = e.realUsername ? e.id : e.realUsername;
-	let date = Date.now();
+	let lastChatted = untimed || nm_userLastChatted;
 	let affects = {};
 	if (userl[user]) {
 		for (let type of Object.keys(userl[user])) {
@@ -228,19 +237,23 @@ function n_onChat(e) {
 		}
 	}
 	if (affects.m) { return e.hide = true }
-	if (affects.l && userLastChatted[user]) {
-		let offset = date - userLastChatted[user] - affects.l*1000;
+	if (affects.l && lastChatted[user]) {
+		let offset = date - lastChatted[user] - affects.l*1000;
 		if (offset < 0) {
 			return e.hide = true;
 		}
 	}
-	userLastChatted[user] = date;
+	lastChatted[user] = date;
+	nm_lastMessageDates.unshift(date);
 	if (nm_mods.includes(e.realUsername)) {
 		e.dataObj ??= {};
 		e.dataObj.rankName = 'mod';
 		e.dataObj.rankColor = '#7befef';
 	}
 }
+
+// MODERATION
+
 var nm_mods = [];
 async function nm_fetchMods() {
 	nm_mods = await fetch("https://api.github.com/repos/LimeSlime888/...network/contents/moderators.txt?raw=true").then(e=>e.json());
@@ -262,7 +275,7 @@ nm_socket.onmessage = function(msg) {
 }
 nm_socket.onopen = function() {
 	nm_network.fetch({minX: 0, minY: 0, maxX: 128, maxY: 0});
-	nm_network.fetch({minX: 0, minY: -1});
+	nm_network.fetch({minX: 0, minY: -1, maxX: 2, maxY: -1});
 }
 var nm_network = {
 	transmit: function(data) {
@@ -481,20 +494,40 @@ function nm_readLimit(tile, row=-1) {
 }
 var nm_userLimits = [];
 var nm_globalLimits = [, , , , , , , , ];
+var nm_deletedMessages = Array(256);
+var nm_userLastChatted = {};
+var nm_lastSentMessage = 0;
 function nm_onTileUpdate(e) {
-	let i = Object.keys(e.tiles)[0];
+	let pos = Object.keys(e.tiles)[0];
+	if (pos == '-1,1' || pos == '-1,2') {
+		let tile = e.tiles[pos];
+		let start = (pos == '-1,2') * 128;
+		if (!tile.properties.color || !tile.properties.bgcolor) {
+			for (let char = start; char < start+128; char++) {
+				delete nm_deletedMessages[char]
+			}
+			return true
+		} else {
+			for (let char = 0; char < 128; char++) {
+				if (tile.content[char] == ' ') delete nm_deletedMessages[start+char];
+				let date = nm_parseLargeInt(tile.properties.color[char], tile.properties.bgcolor[char]);
+				nm_deletedMessages[start+char] = date;
+			}
+			return true
+		}
+	}
 	let limit;
 	let n;
-	if (i == '-1,0') {
+	if (pos == '-1,0') {
 		limit = [];
 		for (let row = 0; row <= 7; row++) {
-			limit.push(nm_readLimit(w.tiles[i], row));
+			limit.push(nm_readLimit(e.tiles[pos], row));
 		}
 		n = -1;
-	} else {
-		limit = nm_readLimit(e.tiles[i]);
-		n = +i.slice(2)
-	}
+	} else if (pos.slice(pos.indexOf(',')) == '0') {
+		limit = nm_readLimit(e.tiles[pos]);
+		n = +pos.slice(2)
+	} else { return false }
 	if (n < 0) {
 		for (let i = 0; i <= 7; i++) {
 			if (!limit || !limit[i]) {
@@ -528,6 +561,7 @@ function nm_onTileUpdate(e) {
 			nm_userLimits[n] = limit;
 		}
 	}
+	return true
 }
 function nm_leastUnexpiredX() {
 	let d = Date.now();
@@ -566,10 +600,12 @@ function nm_getLimitedUsers(anon=false) {
 		if (!limit) continue;
 		if (Date.now() >= limit.expire) continue;
 		if (typeof limit.user != (anon ? 'number' : 'string')) continue;
-		if (!users[limit.user]) {
-			users[limit.user] = {};
+		let user = limit.user;
+		if (!anon) user = user.toLowerCase();
+		if (!users[user]) {
+			users[user] = {};
 		}
-		let user = users[limit.user];
+		user = users[user];
 		if (limit.type == 'l') {
 			if (user.l) {
 				user.l = Math.max(limit.info[0], user.l);
@@ -615,6 +651,23 @@ function nm_getGlobalLimits() {
 	}
 	return limits;
 }
+function nm_deleteMessageIndex(index) {
+	if (index == undefined) return false;
+	let date = nm_lastMessageDates[index];
+	if (date == undefined) return false;
+	let least = 0;
+	for (let i = 0; i < 256; i++) {
+		if (nm_deletedMessages[i]) continue;
+		least = i; break
+	}
+	let now = Date.now();
+	let write_date = [-1, (least < 128) ? 1 : 2, Math.floor((least%128)/16), least%16, now, '•', nextObjId++, ...nm_makeLargeInt(date)];
+	let write_delete = [-1, (least+1 < 128 || least+1 >= 256) ? 1 : 2, Math.floor(((least+1)%128)/16), (least+1)%16, now, ' '];
+	nm_network.write([write_date, write_delete]);
+}
+/*document.body.addEventListener("click", function(e){if (e.ctrlKey && selectedChatTab == 2) {
+	// delete a message
+}})*/
 function nm_help() {
 	clientChatResponse(`=== ...network help ===
 hi, thanks for volunteering to moderate ...network's shared chat!
@@ -627,8 +680,6 @@ view these commands in /help!
 <info> is additional info:
 - ratelimit: info #1 is minimum seconds per message.`)
 }
-var userLastChatted = {};
-var lastSentMessage = 0;
 function nm_registerCommands() {
 	register_chat_command('...help', ()=>nm_help(), null, 'help for ...network chat moderation');
 
@@ -816,6 +867,12 @@ function nm_registerCommands() {
 	` + toChats.join('\n');
 		clientChatResponse(toChat);
 	}, null, 'list all current global limits');
+
+	register_chat_command('...delete', function(args){
+		let i = +args[0];
+		if (isNaN(i)) return clientChatResponse('Invalid index.');
+		nm_deleteMessageIndex(i);
+	}, 'index', 'delete a message (0 = last message, 1 = second last message etc.)');
 }
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
