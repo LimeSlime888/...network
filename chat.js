@@ -18,7 +18,7 @@ var n_chatfield = document.createElement('div');
 n_chatfield.classList.add('chatfield');
 n_chatfield.style.display = 'none';
 n_chatfield.id = 'network_chatfield';
-elm.network_chatfield = n_chatTab;
+elm.network_chatfield = n_chatfield;
 elm.global_chatfield.after(n_chatfield);
 var n_unreadText = document.createElement('b');
 n_unreadText.classList.add('unread');
@@ -78,6 +78,15 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 function clientChatResponse(message) {
 	if (selectedChatTab == 2) { return n_addChat(0, "user", "[ Client ]", message, "Client", false, false, false, null, getDate()) }
 	addChat(null, 0, "user", "[ Client ]", message, "Client", false, false, false, null, getDate());
+}
+function getChatfield() {
+	if(selectedChatTab == 0) {
+		return elm.page_chatfield;
+	} else if(selectedChatTab == 1) {
+		return elm.global_chatfield;
+	} else if(selectedChatTab == 2) {
+		return elm.network_chatfield;
+	}
 }
 function n_onhistory(data) {
 	w.emit("chathistory", data)
