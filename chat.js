@@ -27,6 +27,7 @@ elm.network_unread = n_unreadText;
 n_chatTab.append(n_unreadText);
 var chatNetworkUnread = 0;
 var chatAdditionsNetwork = [];
+var chatRecordsNetwork = [];
 var initNetworkTabOpen = false;
 n_chatTab.addEventListener("click", function() {
 	n_chatTab.classList.add("chat_tab_selected");
@@ -39,7 +40,17 @@ n_chatTab.addEventListener("click", function() {
 	selectedChatTab = 2;
 	chatNetworkUnread = 0;
 
-	insertNewChatElementsIntoChatfield(n_chatfield, chatAdditionsNetwork);
+	// from insertNewChatElementsIntoChatfield
+	for(let message of chatAdditionsNetwork) {
+		buildChatElement(n_chatfield,
+			message.id, message.type, message.nickname, message.message,
+			message.realUsername, message.op, message.admin, message.staff,
+			message.color, message.date, message.dataObj);
+		message.element = n_chatfield.lastElementChild;
+		chatRecordsNetwork.push(message);
+	}
+	chatAdditionsNetwork.splice(0);
+
 	updateUnread();
 	if(!initNetworkTabOpen) {
 		initNetworkTabOpen = true;
@@ -73,7 +84,17 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 	if(chatAdditionsNetwork.length > chatHistoryLimit) {
 		chatAdditionsNetwork.shift();
 	}
-	insertNewChatElementsIntoChatfield(n_chatfield, chatAdditionsNetwork);
+	// from insertNewChatElementsIntoChatfield
+	for(let message of chatAdditionsNetwork) {
+		buildChatElement(n_chatfield,
+			message.id, message.type, message.nickname, message.message,
+			message.realUsername, message.op, message.admin, message.staff,
+			message.color, message.date, message.dataObj);
+		message.element = n_chatfield.lastElementChild;
+		chatRecordsNetwork.push(message);
+	}
+	chatAdditionsNetwork.splice(0);
+	return msgData.element;
 }
 function clientChatResponse(message) {
 	if (selectedChatTab == 2) { return n_addChat(0, "user", "[ Client ]", message, "Client", false, false, false, null, getDate()) }
@@ -89,7 +110,7 @@ function n_onhistory(data) {
 		if (chat.hide) continue;
 		var type = chatType(chat.registered, chat.nickname, chat.realUsername);
 		n_addChat(chat.id, type, chat.nickname, chat.message, chat.realUsername,
-				  chat.op, chat.admin, chat.staff, chat.color, chat.date, chat);
+				  chat.op, chat.admin, chat.staff, chat.color, chat.date, chat.dataObj);
 	}
 }
 n_socket.onmessage = function(msg){
@@ -119,6 +140,7 @@ sendChat = function() {
 	api_chat_send(chatText, opts);
 }
 w.on('chatsend', function(e){
+	if (selectedChatTab != 2) return;
 	let global = nm_getGlobalLimits();
 	let userl = nm_getLimitedUsers(!state.userModel.username);
 	let user = state.userModel.username ? state.userModel.username : w.clientId;
@@ -156,8 +178,8 @@ w.on('chatsend', function(e){
 		}
 	}
 	if (affects.l && nm_lastSentMessage) {
-		let offset = date - nm_lastSentMessage - affects.l*1000;
-		if (offset < 0) {
+		let offset = nm_lastSentMessage - date + affects.l*1000;
+		if (offset > 0) {
 			e.cancel = true;
 			return clientChatResponse(`Chat again in ${offset/1000} seconds.`);
 		}
@@ -251,6 +273,8 @@ function n_onChat(e, untimed) {
 		e.dataObj.rankColor = '#7befef';
 	}
 }
+clientChatResponse(`>> the intended centre of interaction for ...network is /...world <<
+please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered`);
 
 // MODERATION
 
@@ -261,7 +285,7 @@ async function nm_fetchMods() {
 	if (nm_mods.includes(state.userModel.username)) {
 		nm_registerCommands();
 		clientChatResponse(`>> welcome ${state.userModel.username}! <<
-you're a moderator for ...network. use /...help or go to /...network/limits for moderation help!`)
+you're a moderator for ...network. use /...help or go to /...network/limits for moderation help!`);
 	}
 }
 nm_fetchMods();
@@ -453,11 +477,11 @@ function nm_readLimit(tile, row=-1) {
 	// row 0~7
 	if (tile === undefined || tile === null) return;
 	if (!(tile instanceof Object))
-		return console.warn(`Attempted to read non-tile limit`);
+		return console.warn(`Attempted to read non-tile limit (not Object)`);
 	if (!tile.content)
-		return console.warn(`Attempted to read non-tile limit`);
+		return console.warn(`Attempted to read non-tile limit (no .content)`);
 	if (!tile.properties)
-		return console.warn(`Attempted to read non-tile limit`);
+		return console.warn(`Attempted to read non-tile limit (no .properties)`);
 	if (!tile.properties.color) return;
 	if (!tile.properties.bgcolor) return;
 	let type = tile.content[row < 0 ? 112 : row * 16];
@@ -512,6 +536,7 @@ function nm_onTileUpdate(e) {
 				if (tile.content[char] == ' ') delete nm_deletedMessages[start+char];
 				let date = nm_parseLargeInt(tile.properties.color[char], tile.properties.bgcolor[char]);
 				nm_deletedMessages[start+char] = date;
+				if (e.channel != w.socketChannel) nm_deleteMessageDate(date);
 			}
 			return true
 		}
@@ -524,7 +549,7 @@ function nm_onTileUpdate(e) {
 			limit.push(nm_readLimit(e.tiles[pos], row));
 		}
 		n = -1;
-	} else if (pos.slice(pos.indexOf(',')) == '0') {
+	} else if (pos.slice(pos.indexOf(',')) == ',0') {
 		limit = nm_readLimit(e.tiles[pos]);
 		n = +pos.slice(2)
 	} else { return false }
@@ -651,10 +676,7 @@ function nm_getGlobalLimits() {
 	}
 	return limits;
 }
-function nm_deleteMessageIndex(index) {
-	if (index == undefined) return false;
-	let date = nm_lastMessageDates[index];
-	if (date == undefined) return false;
+function nm_sendDeleteMessageDate(date) {
 	let least = 0;
 	for (let i = 0; i < 256; i++) {
 		if (nm_deletedMessages[i]) continue;
@@ -664,16 +686,43 @@ function nm_deleteMessageIndex(index) {
 	let write_date = [-1, (least < 128) ? 1 : 2, Math.floor((least%128)/16), least%16, now, '•', nextObjId++, ...nm_makeLargeInt(date)];
 	let write_delete = [-1, (least+1 < 128 || least+1 >= 256) ? 1 : 2, Math.floor(((least+1)%128)/16), (least+1)%16, now, ' '];
 	nm_network.write([write_date, write_delete]);
+	return nm_deleteMessageDate(date);
 }
-/*document.body.addEventListener("click", function(e){if (e.ctrlKey && selectedChatTab == 2) {
-	// delete a message
-}})*/
+function nm_deleteMessageDate(date) {
+	for (let i = 0; i < chatRecordsNetwork.length; i++) {
+		let message = chatRecordsNetwork[i];
+		if (message.date == date) {
+			message.element.remove();
+			chatRecordsNetwork.splice(i, 1);
+			return message;
+		}
+	}
+}
+n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
+	let element = e.target;
+	for (let i = 0; true; i++) {
+		if (element.tagName == 'DIV' && element.parentElement == n_chatfield) break;
+		if (i > 12) return;
+		if (!element) return;
+		if (element == n_chatfield) return;
+		element = element.parentElement;
+	}
+	for (let message of chatRecordsNetwork) {
+		if (message.element == element) {
+			w.doAnnounce('Deleted 1 message.', 'nm_delete');
+			return nm_sendDeleteMessageDate(message.date);
+		}
+	}
+	return clientChatResponse('No messages found.', 'nm_delete');
+}});
 function nm_help() {
 	clientChatResponse(`=== ...network help ===
 hi, thanks for volunteering to moderate ...network's shared chat!
 to limit users, you can use commands with names starting with ...
 view these commands in /help!
+view examples of how to use these commands in /...network/limits!
 == limiting help ==
+in updating commands, pass * to avoid updating the corresponding property.
 <user> is the username of the person to limit.
 <type> is "m"=mute or "l"=ratelimit.
 <expire> is seconds to expiry. <0 = forever.
@@ -717,7 +766,7 @@ function nm_registerCommands() {
 			if (args[2] == Infinity) clientChatResponse(`Limited ID ${args[0]} forever`)
 			else clientChatResponse(`Limited ID ${args[0]} until ${new Date(args[2]).toISOString()}`);
 		}
-	}, ['id', 'type', 'expire', '...info'], 'apply a limit to an anon id');
+	}, ['id', 'type', 'expire', '...info'], 'apply a limit to an anon id (0 = all)');
 
 	register_chat_command('...limitall', function(args) {
 		let duration = +args[1];
@@ -776,6 +825,30 @@ function nm_registerCommands() {
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
 	}, ['x', 'id', 'type', 'expire', '...info'], 'update a user limit (to an anon id if required)');
+	
+	register_chat_command('...updateglobal', function(args) {
+		let limit = nm_globalLimits[args[0]];
+		if (!limit) return clientChatResponse(`User limit y=${+args[0]} does not exist.`);
+		let duration = +args[2];
+		if (isNaN(duration)) {
+			duration = null
+		} else if (duration <= 0) {
+			duration = args[2] = Infinity
+		} else {
+			args[2] = Date.now() + duration * 1000
+		}
+		for (let i in args) {
+			i = +i;
+			if (args[i] == '*') {
+				if (i == 1) args[1] = limit.type;
+				else args[i] = null;
+			}
+		}
+		args[0] = -(+args[0])-1;
+		args.splice(0, 0, 0);
+		args.splice(4, 0, false, false);
+		let x = nm_updateLimit(...args);
+	}, ['y', 'type', 'expire', '...info'], 'update a global limit');
 
 	register_chat_command('...clear', function(args){
 		nm_network.clear_tile({tileX: +args[0], tileY: 0});
@@ -838,7 +911,7 @@ function nm_registerCommands() {
 			if (Date.now() >= limit[1].expire) continue;
 			limitCount += 1;
 			let toChat;
-			toChat = `• x = ${limit[0]}; type ${limit[1].type}`
+			toChat = `• y = ${limit[0]}; type ${limit[1].type}`
 			if (limit[1].expire >= 0xfffffffffff) {
 				toChat += `; expires never`;
 			} else {
@@ -871,12 +944,15 @@ function nm_registerCommands() {
 	register_chat_command('...delete', function(args){
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
-		nm_deleteMessageIndex(i);
-	}, 'index', 'delete a message (0 = last message, 1 = second last message etc.)');
+		let date = nm_lastMessageDates[i];
+		if (date == undefined) return false;
+		nm_sendDeleteMessageDate(date);
+	}, ['index'], `delete a message (0 = last message, 1 = second last message etc.)
+you can also do this by clicking a message while holding Ctrl`);
 }
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
-Moderation will not function on 'This page' tab of /...network.
-Please chat on the shared chat always using the '...network' tab.`);
+moderation will not function on 'This page' tab of /...network.
+please chat on the shared chat always using the '...network' tab.`);
 	localStorage.networkWarning = true;
 }
