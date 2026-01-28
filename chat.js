@@ -134,6 +134,7 @@ n_socket.onmessage = function(msg){
 		}
 		data.type = chatType(data.registered, data.nickname, data.realUsername);
 		n_onChat(data);
+		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
 				  data.op, data.admin, data.staff, data.color, data.date || Date.now(), data.dataObj);
 	}
@@ -245,7 +246,7 @@ function n_onChat(e, untimed) {
 	if (nm_deletedMessages.includes(date)) return e.hide = true;
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
-	let user = e.realUsername ? e.id : e.realUsername;
+	let user = e.realUsername || e.id;
 	let lastChatted = untimed || nm_userLastChatted;
 	let affects = {};
 	if (userl[user]) {
