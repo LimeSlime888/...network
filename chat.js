@@ -559,7 +559,7 @@ function nm_onTileUpdate(e) {
 			limit.push(nm_readLimit(e.tiles[pos], row));
 		}
 		n = -1;
-	} else if (pos.slice(pos.indexOf(',')) == ',0') {
+	} else if (pos.slice(0,pos.indexOf(',')) == '0') {
 		limit = nm_readLimit(e.tiles[pos]);
 		n = +pos.slice(2)
 	} else { return false }
