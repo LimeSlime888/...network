@@ -29,6 +29,7 @@ var chatNetworkUnread = 0;
 var chatAdditionsNetwork = [];
 var chatRecordsNetwork = [];
 var initNetworkTabOpen = false;
+var n_chatId;
 n_chatTab.addEventListener("click", function() {
 	n_chatTab.classList.add("chat_tab_selected");
 	elm.chat_page_tab.classList.remove("chat_tab_selected");
@@ -137,6 +138,8 @@ n_socket.onmessage = function(msg){
 		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
 				  data.op, data.admin, data.staff, data.color, data.date || Date.now(), data.dataObj);
+	} else if (data.kind == 'channel') {
+		n_chatId = data.id;
 	}
 }
 sendChat = function() {
@@ -153,7 +156,7 @@ w.on('chatsend', function(e){
 	if (selectedChatTab != 2) return;
 	let global = nm_getGlobalLimits();
 	let userl = nm_getLimitedUsers(!state.userModel.username);
-	let user = state.userModel.username ? state.userModel.username : w.clientId;
+	let user = state.userModel.username ? state.userModel.username : n_chatId;
 	let date = Date.now();
 	let affects = {};
 	if (userl[user]) {
