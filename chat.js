@@ -711,6 +711,7 @@ function nm_deleteMessageDate(date) {
 		}
 	}
 }
+var n_deleteStreak = 0;
 n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
 	let element = e.target;
 	for (let i = 0; true; i++) {
@@ -722,7 +723,10 @@ n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
 	}
 	for (let message of chatRecordsNetwork) {
 		if (message.element == element) {
-			w.doAnnounce('Deleted 1 message.', 'nm_delete');
+			let closed = w.ui.announcements.nm_delete.bar.style.display;
+			if (closed) n_deleteStreak = 1;
+			else n_deleteStreak += 1;
+			w.doAnnounce(`Deleted ${n_deleteStreak} messages.`, 'nm_delete');
 			return nm_sendDeleteMessageDate(message.date);
 		}
 	}
@@ -873,87 +877,6 @@ function nm_registerCommands() {
 		clientChatResponse(`Cleared global limit y=${+args[0]}.`)
 	}, ['y'], 'clear a global limit');
 
-	register_chat_command('...list', function(args) {
-		let limitCount = 0;
-		let toChats = [];
-		for (let limit of Object.entries(nm_userLimits)) {
-			if (Date.now() >= limit[1].expire) continue;
-			limitCount += 1;
-			let toChat;
-			let userString;
-			if (typeof limit[1].user == 'string') {
-				userString = limit[1].user;
-			} else {
-				if (limit[1].user == 0) { userString = 'all anons' }
-				else { userString = '* ' + limit[1].user }
-			}
-			toChat = `• x = ${limit[0]}; ${userString}; type ${limit[1].type}`
-			if (limit[1].expire >= 0xfffffffffff) {
-				toChat += `; expires never`;
-			} else {
-				let expireDate = new Date(limit[1].expire);
-				let expireString = expireDate.toISOString();
-				let msToExpire = limit[1].expire - Date.now();
-				let relativeExpire = msToExpire / 1000;
-				toChat += `; expires ${expireString} (${relativeExpire}s)`;
-			}
-			let info = [...limit[1].info];
-			let lastNonZero = info.findLastIndex(e => e != 0);
-			if (lastNonZero >= 0) {
-				info.splice(lastNonZero + 1)
-			} else {
-				info.splice(0)
-			}
-			if (info.length) {
-				if (limit[1].type == 'l') {
-					info[0] = `cooldown ${info[0]}s`
-				}
-				toChat += '; ' + info.join(', ');
-			}
-			toChats.push(toChat);
-		}
-		let toChat = `== ${limitCount} limits ==
-	` + toChats.join('\n');
-		clientChatResponse(toChat);
-	}, null, 'list all current user limits');
-
-	register_chat_command('...listglobal', function(args) {
-		let limitCount = 0;
-		let toChats = [];
-		for (let limit of Object.entries(nm_globalLimits)) {
-			if (Date.now() >= limit[1].expire) continue;
-			limitCount += 1;
-			let toChat;
-			toChat = `• y = ${limit[0]}; type ${limit[1].type}`
-			if (limit[1].expire >= 0xfffffffffff) {
-				toChat += `; expires never`;
-			} else {
-				let expireDate = new Date(limit[1].expire);
-				let expireString = expireDate.toISOString();
-				let msToExpire = limit[1].expire - Date.now();
-				let relativeExpireString = msToExpire / 1000 + 's';
-				toChat += `; expires ${expireString} (${relativeExpireString})`;
-			}
-			let info = [...limit[1].info];
-			let lastNonZero = info.findLastIndex(e => e != 0);
-			if (lastNonZero >= 0) {
-				info.splice(lastNonZero + 1)
-			} else {
-				info.splice(0)
-			}
-			if (info.length) {
-				if (limit[1].type == 'l') {
-					info[0] = `cooldown ${info[0]}s`
-				}
-				toChat += '; ' + info.join(', ');
-			}
-			toChats.push(toChat);
-		}
-		let toChat = `== ${limitCount} limits ==
-	` + toChats.join('\n');
-		clientChatResponse(toChat);
-	}, null, 'list all current global limits');
-
 	register_chat_command('...delete', function(args){
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
@@ -963,6 +886,88 @@ function nm_registerCommands() {
 	}, ['index'], `delete a message (0 = last message, 1 = second last message etc.)
 you can also do this by clicking a message while holding Ctrl`);
 }
+
+register_chat_command('...list', function(args) {
+	let limitCount = 0;
+	let toChats = [];
+	for (let limit of Object.entries(nm_userLimits)) {
+		if (Date.now() >= limit[1].expire) continue;
+		limitCount += 1;
+		let toChat;
+		let userString;
+		if (typeof limit[1].user == 'string') {
+			userString = limit[1].user;
+		} else {
+			if (limit[1].user == 0) { userString = 'all anons' }
+			else { userString = '* ' + limit[1].user }
+		}
+		toChat = `• x = ${limit[0]}; ${userString}; type ${limit[1].type}`
+		if (limit[1].expire >= 0xfffffffffff) {
+			toChat += `; expires never`;
+		} else {
+			let expireDate = new Date(limit[1].expire);
+			let expireString = expireDate.toISOString();
+			let msToExpire = limit[1].expire - Date.now();
+			let relativeExpire = msToExpire / 1000;
+			toChat += `; expires ${expireString} (${relativeExpire}s)`;
+		}
+		let info = [...limit[1].info];
+		let lastNonZero = info.findLastIndex(e => e != 0);
+		if (lastNonZero >= 0) {
+			info.splice(lastNonZero + 1)
+		} else {
+			info.splice(0)
+		}
+		if (info.length) {
+			if (limit[1].type == 'l') {
+				info[0] = `cooldown ${info[0]}s`
+			}
+			toChat += '; ' + info.join(', ');
+		}
+		toChats.push(toChat);
+	}
+	let toChat = `== ${limitCount} limits ==
+` + toChats.join('\n');
+	clientChatResponse(toChat);
+}, null, 'list all current user limits');
+
+register_chat_command('...listglobal', function(args) {
+	let limitCount = 0;
+	let toChats = [];
+	for (let limit of Object.entries(nm_globalLimits)) {
+		if (Date.now() >= limit[1].expire) continue;
+		limitCount += 1;
+		let toChat;
+		toChat = `• y = ${limit[0]}; type ${limit[1].type}`
+		if (limit[1].expire >= 0xfffffffffff) {
+			toChat += `; expires never`;
+		} else {
+			let expireDate = new Date(limit[1].expire);
+			let expireString = expireDate.toISOString();
+			let msToExpire = limit[1].expire - Date.now();
+			let relativeExpireString = msToExpire / 1000 + 's';
+			toChat += `; expires ${expireString} (${relativeExpireString})`;
+		}
+		let info = [...limit[1].info];
+		let lastNonZero = info.findLastIndex(e => e != 0);
+		if (lastNonZero >= 0) {
+			info.splice(lastNonZero + 1)
+		} else {
+			info.splice(0)
+		}
+		if (info.length) {
+			if (limit[1].type == 'l') {
+				info[0] = `cooldown ${info[0]}s`
+			}
+			toChat += '; ' + info.join(', ');
+		}
+		toChats.push(toChat);
+	}
+	let toChat = `== ${limitCount} limits ==
+` + toChats.join('\n');
+	clientChatResponse(toChat);
+}, null, 'list all current global limits');
+
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
 moderation will not function on 'This page' tab of /...network.
