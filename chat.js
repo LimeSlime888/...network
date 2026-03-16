@@ -890,7 +890,7 @@ you can also do this by clicking a message while holding Ctrl`);
 
 register_chat_command('...rules', function() {
 	clientChatResponse('rules: https://github.com/LimeSlime888/...network/blob/main/rules.md, section 1');
-});
+}, null, 'recall the link to the ...network chat rules');
 
 register_chat_command('...list', function(args) {
 	let limitCount = 0;
