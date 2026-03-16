@@ -153,7 +153,7 @@ sendChat = function() {
 	api_chat_send(chatText, opts);
 }
 w.on('chatsend', function(e){
-	if (selectedChatTab != 2) return;
+	if (selectedChatTab != 2 || e.message.startsWith('/')) return;
 	let global = nm_getGlobalLimits();
 	let userl = nm_getLimitedUsers(!state.userModel.username);
 	let user = state.userModel.username ? state.userModel.username : n_chatId;
@@ -187,7 +187,7 @@ w.on('chatsend', function(e){
 			let relativeExpire = msToExpire / 1000;
 			return clientChatResponse(`You're muted until ${expireString} (for ${relativeExpire}s).`)
 		} else {
-			return clientChatResponse(`You're muted.`)
+			return clientChatResponse(`You're muted indefinitely.`)
 		}
 	}
 	if (affects.l && nm_lastSentMessage) {
@@ -286,8 +286,9 @@ function n_onChat(e, untimed) {
 		e.dataObj.rankColor = '#7befef';
 	}
 }
-clientChatResponse(`>> the intended centre of interaction for ...network is /...world <<
-please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered`);
+clientChatResponse(`>> the intended centre of interaction for ...network is /...world <<`);
+clientChatResponse(`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`);
+clientChatResponse(`• also remember the rules; they can be found at https://github.com/LimeSlime888/...network/blob/main/rules.md for section 1. this link can be recalled via /...rules •`);
 
 // MODERATION
 
@@ -886,6 +887,10 @@ function nm_registerCommands() {
 	}, ['index'], `delete a message (0 = last message, 1 = second last message etc.)
 you can also do this by clicking a message while holding Ctrl`);
 }
+
+register_chat_command('...rules', function() {
+	clientChatResponse('rules: https://github.com/LimeSlime888/...network/blob/main/rules.md, section 1');
+});
 
 register_chat_command('...list', function(args) {
 	let limitCount = 0;
