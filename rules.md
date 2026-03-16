@@ -1,8 +1,9 @@
 the key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in rfc 2119.
 
 # 1. the chat of ...network
-this section is not started
+the following apply to the shared chat of ...network.
 # 2. the canvas of ...world
+the following apply to the canvas of [/...world](https://owot.me/...world), the intended centre of interaction of ...network.
 ## 2.1. griefing
 1. you MUST NOT overwrite with redundant or meaningless text:
     1. artwork
