@@ -2,25 +2,25 @@ the key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # 0. global rules
 the following apply to the canvas of ...world, and the shared chat and canvas of ...network.
-1. be nice :3
 ## 0.1. code of conduct
-1. you MUST NOT communicate with the intention to cause emotional strain
-2. you MUST NOT promote or engage in harassment
-	1. you MUST NOT promote violence, especially in discrimination towards a group of people
-3. you MUST NOT attempt to impersonate a user
-4. you MUST NOT threaten a user with violence or other actions intended to cause harm
-5. you MUST NOT promote or normalise self-harm, pedophilia, or zoophilia
-6. you MUST NOT promote or engage in financial scams or fraud
-7. you MUST NOT link personally identifying information to a user if they intend to keep the information private. this includes, but is not limited to:
+1. you MUST act in respect towards all users of the ...network.
+    1. you MUST NOT threaten a user with violence or other actions intended to cause harm
+2. you MUST NOT attempt to impersonate a user
+    1. this does not include satirisation of a user via imitation, however you must indicate clearly that you are not the original user.
+3. you MUST NOT promote or normalise self-harm, pedophilia, or zoophilia
+4. you MUST NOT promote or engage in financial scams or fraud
+5. you MUST NOT link personally identifying information to a user if they intend to keep the information private. this includes, but is not limited to:
     1. area of residence, when specified more precisely than country
     2. legal name
     3. date of birth or age, when specified more precisely than 1 year
     4. place of birth, when specified more precisely than country
-8. violations of 0.1.1~5 SHOULD be handled by informing the perpetrator of their violation and to take steps to avoid violation
-9. violations of 0.1.5~7 MUST be handled by deleting the violating content as soon as possible
-10. if a person is known to have violated 0.1.1~7, they MAY be punished under an Operator's discretion
+6. violations of 0.1.1~5 SHOULD be handled by informing the perpetrator of their violation and to take steps to avoid violation
+7. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
+8. if a person is known to have violated 0.1.1~5, they MAY be punished under an Operator's discretion.
 # 1. the chat
 the following apply to the shared chat of ...network.
+## 1.1. spam
+1. you MUST NOT send repeated redundant or meaningless text
 # 2. the canvas
 the following apply to the canvas of [/...world](https://owot.me/...world) and the canvas of [/...network](https://owot.me/...network).
 ## 2.0. dictionary
@@ -37,7 +37,7 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
 5. 2.1.1 does not apply within the purge limits during a purge
 6. 2.1.1.1~2 do not apply if the content violates other rules
 ## 2.2. regenerating structures
-1. a Regenerating Structure is a collection of characters that are regenerated at a rate of at most completely per 24 hours
+1. a Regenerating Structure is a collection of characters that are regenerated completely in the span of at most 24 hours
 2. you MUST NOT reinforce Regenerating Structures that cover at most 4 tiles for:
     1. more than 16 in 72 hours within 4 tiles of spawn
     2. more than 36 in 72 hours within 10 tiles of spawn
