@@ -3,10 +3,10 @@ the key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 # 0. global rules
 the following apply to the canvas of ...world, and the shared chat and canvas of ...network.
 ## 0.1. code of conduct
-1. you MUST act in respect towards all users of the ...network.
-    1. you MUST NOT threaten a user with violence or other actions intended to cause harm
+1. you MUST act with respect towards all users of the ...network.
+    1. you MUST NOT (threaten a user with or promote) violence or other actions intended to cause harm
 2. you MUST NOT attempt to impersonate a user
-    1. this does not include satirisation of a user via imitation, however you must indicate clearly that you are not the original user.
+    1. this does not include satirisation of a user via imitation, however you MUST indicate clearly that you are not the original user
 3. you MUST NOT promote or normalise self-harm, pedophilia, or zoophilia
 4. you MUST NOT promote or engage in financial scams or fraud
 5. you MUST NOT link personally identifying information to a user if they intend to keep the information private. this includes, but is not limited to:

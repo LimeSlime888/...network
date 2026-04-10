@@ -142,10 +142,12 @@ n_socket.onmessage = function(msg){
 		n_chatId = data.id;
 	}
 }
+var n_channels = [];
 sendChat = function() {
 	var chatText = elm.chatbar.value;
 	elm.chatbar.value = "";
-	var opts = {};
+	var opts = {customMeta:{}};
+	opts.customMeta.channel = n_channels.join(',');
 	if (selectedChatTab == 2) opts.location = 'network';
 	if(defaultChatColor != null) {
 		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
@@ -240,7 +242,6 @@ function updateUnread() {
 		}
 	}
 }
-var nm_lastMessageDates = [];
 function n_onChat(e, untimed) {
 	e.network = true;
 	w.emit('chatmod', e);
@@ -279,7 +280,6 @@ function n_onChat(e, untimed) {
 		}
 	}
 	lastChatted[user] = date;
-	nm_lastMessageDates.unshift(date);
 	if (nm_mods.includes(e.realUsername)) {
 		e.dataObj ??= {};
 		e.dataObj.rankName = 'mod';
@@ -293,14 +293,16 @@ clientChatResponse(`• also remember the rules; they can be found at https://gi
 // MODERATION
 
 var nm_mods = [];
+var nm_isMod = false;
 async function nm_fetchMods() {
 	nm_mods = await fetch("https://api.github.com/repos/LimeSlime888/...network/contents/moderators.txt?raw=true").then(e=>e.json());
 	nm_mods = atob(nm_mods.content).split('\n').filter(e=>e);
 	if (nm_mods.includes(state.userModel.username)) {
+		nm_isMod = true;
 		nm_registerCommands();
 		clientChatResponse(`>> welcome ${state.userModel.username}! <<
 you're a moderator for ...network. use /...help or go to /...network/limits for moderation help!`);
-	}
+	} else { nm_isMod = false }
 }
 nm_fetchMods();
 var nm_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/limits/ws/?hide=1');
@@ -713,6 +715,8 @@ function nm_deleteMessageDate(date) {
 	}
 }
 var n_deleteStreak = 0;
+w.doAnnounce('Creating deletion streak bar...', 'nm_delete');
+w.doAnnounce('', 'nm_delete');
 n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
 	let element = e.target;
 	for (let i = 0; true; i++) {
@@ -731,7 +735,7 @@ n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
 			return nm_sendDeleteMessageDate(message.date);
 		}
 	}
-	return clientChatResponse('No messages found.', 'nm_delete');
+	return w.doAnnounce('No messages found.', 'nm_delete');
 }});
 function nm_help() {
 	clientChatResponse(`=== ...network help ===
@@ -802,7 +806,7 @@ function nm_registerCommands() {
 
 	register_chat_command('...update', function(args) {
 		let limit = nm_userLimits[args[0]];
-		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist.`);
+		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist`);
 		let duration = +args[3];
 		if (isNaN(duration)) {
 			duration = null
@@ -824,7 +828,7 @@ function nm_registerCommands() {
 
 	register_chat_command('...updateid', function(args) {
 		let limit = nm_userLimits[args[0]];
-		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist.`);
+		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist`);
 		let duration = +args[3];
 		if (isNaN(duration)) {
 			duration = null
@@ -846,7 +850,7 @@ function nm_registerCommands() {
 	
 	register_chat_command('...updateglobal', function(args) {
 		let limit = nm_globalLimits[args[0]];
-		if (!limit) return clientChatResponse(`User limit y=${+args[0]} does not exist.`);
+		if (!limit) return clientChatResponse(`User limit y=${+args[0]} does not exist`);
 		let duration = +args[2];
 		if (isNaN(duration)) {
 			duration = null
@@ -881,9 +885,7 @@ function nm_registerCommands() {
 	register_chat_command('...delete', function(args){
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
-		let date = nm_lastMessageDates[i];
-		if (date == undefined) return false;
-		nm_sendDeleteMessageDate(date);
+		nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork.length-1-i].date);
 	}, ['index'], `delete a message (0 = last message, 1 = second last message etc.)
 you can also do this by clicking a message while holding Ctrl`);
 }
@@ -931,7 +933,7 @@ register_chat_command('...list', function(args) {
 		}
 		toChats.push(toChat);
 	}
-	let toChat = `== ${limitCount} limits ==
+	let toChat = `== ${limitCount} user limits ==
 ` + toChats.join('\n');
 	clientChatResponse(toChat);
 }, null, 'list all current user limits');
@@ -968,10 +970,64 @@ register_chat_command('...listglobal', function(args) {
 		}
 		toChats.push(toChat);
 	}
-	let toChat = `== ${limitCount} limits ==
+	let toChat = `== ${limitCount} global limits ==
 ` + toChats.join('\n');
 	clientChatResponse(toChat);
 }, null, 'list all current global limits');
+
+register_chat_command('...channel', function(){
+	clientChatResponse(`== ${n_channels.length} channels ==
+`+n_channels.join(','));
+}, null, 'list all selected channels');
+
+register_chat_command('...channel+', function(args){
+	let channels = args.join(' ').split(',');
+	let changed = [];
+	for (let channel of channels) {
+		let i = n_channels.indexOf(channel);
+		if (i < 0) {
+			n_channels.push(channel);
+			changed.push(channel);
+		}
+	}
+	clientChatResponse(`Added channels ${}`);
+}, ['channels'], 'add channels split by ,');
+
+register_chat_command('...channel-', function(args){
+	let channels = args.join(' ').split(',');
+	let changed = [];
+	for (let channel of channels) {
+		let i = n_channels.indexOf(channel);
+		if (i >= 0) {
+			n_channels.splice(i, 1);
+			changed.push(channel);
+		}
+	}
+	clientChatResponse(`Removed channels ${changed}`);
+}, ['channels'], 'remove channels split by ,');
+
+register_chat_command('...channelget', function(args){
+	let selection = window.getSelection();
+	let element = selection.focusNode;
+	if (!selection.focusNode) return clientChatResponse('Not selecting');
+	for (let i = 0; true; i++) {
+		if (element.tagName == 'DIV' && element.parentElement == n_chatfield) break;
+		if (i > 12) return clientChatResponse('Not selecting a message');
+		if (!element) return clientChatResponse('Not selecting a message');
+		if (element == n_chatfield) return clientChatResponse('Not selecting a <div> in chatfield');
+		element = element.parentElement;
+	}
+	for (let message of chatRecordsNetwork) {
+		if (message.element == element) {
+			if (message.customMeta && message.customMeta.channel) {
+				clientChatResponse(`Message has channels: ${message.customMeta.channel}`);
+			} else {
+				clientChatResponse(`Message has no channels`);
+			}
+			return
+		}
+	}
+}, 'get channel of selected message');
 
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
