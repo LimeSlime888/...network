@@ -134,6 +134,10 @@ n_socket.onmessage = function(msg){
 			updateUnread();
 		}
 		data.type = chatType(data.registered, data.nickname, data.realUsername);
+		if (data.customMeta) {
+			data.dataObj ??= {};
+			data.dataObj.customMeta = data.customMeta
+		}
 		n_onChat(data);
 		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
@@ -990,7 +994,7 @@ register_chat_command('...channel+', function(args){
 			changed.push(channel);
 		}
 	}
-	clientChatResponse(`Added channels ${}`);
+	clientChatResponse(`Added channels ${changed.join(',')}`);
 }, ['channels'], 'add channels split by ,');
 
 register_chat_command('...channel-', function(args){
@@ -1003,7 +1007,7 @@ register_chat_command('...channel-', function(args){
 			changed.push(channel);
 		}
 	}
-	clientChatResponse(`Removed channels ${changed}`);
+	clientChatResponse(`Removed channels ${changed.join(',')}`);
 }, ['channels'], 'remove channels split by ,');
 
 register_chat_command('...channelget', function(args){
@@ -1019,8 +1023,8 @@ register_chat_command('...channelget', function(args){
 	}
 	for (let message of chatRecordsNetwork) {
 		if (message.element == element) {
-			if (message.customMeta && message.customMeta.channel) {
-				clientChatResponse(`Message has channels: ${message.customMeta.channel}`);
+			if (message.dataObj.customMeta && message.dataObj.customMeta.channel) {
+				clientChatResponse(`Message has channels: ${message.dataObj.customMeta.channel}`);
 			} else {
 				clientChatResponse(`Message has no channels`);
 			}
