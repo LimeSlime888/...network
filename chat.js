@@ -790,14 +790,15 @@ function nm_helpmod() {
 hi, thanks for volunteering to moderate ...network's shared chat!
 to limit users, you can use commands with names starting with ...
 view these commands in /help!
-view examples of how to use these commands in /...network/limits!
+view examples of how to use these commands in <a style="text-decoration:underline" href="javascript:client_commands.warp(['...network'])">/...network/limits</a>!
 == limiting help ==
 in updating commands, pass * to avoid updating the corresponding property.
-<user> is the username of the person to limit.
-<type> is "m"=mute or "l"=ratelimit.
-<expire> is seconds to expiry. <0 = forever.
-<info> is additional info:
-- ratelimit: info #1 is minimum seconds per message.`, true)
+&lt;user&gt; is the username of the person to limit.
+&lt;type&gt; is "m"=mute / "l"=ratelimit / "c"=force channel / "C"=force unchannel.
+&lt;expire&gt; is seconds to expiry. &lt;0 = forever.
+&lt;info&gt; is additional info:
+- ratelimit: info #1 is minimum seconds per message.
+- channel`, true)
 }
 function nm_registerCommands() {
 	register_chat_command('...helpmod', ()=>nm_helpmod(), null, 'help for ...network chat moderation');
