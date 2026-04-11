@@ -261,11 +261,13 @@ function n_onChat(e, untimed) {
 	if (nm_deletedMessages.includes(date)) return e.hide = true;
 	if (e.customMeta && e.customMeta.channel) {
 		let channels = e.customMeta.channel.split(',');
+		let filtered = false;
 		for (let channel of channels) {
-			if (channel.includes(n_channels) ^ n_channelWhitelist) {
-				return e.hide = true;
+			if (channel.includes(n_channels)) {
+				filtered = true;
 			}
 		}
+		if (filtered ^ n_channelWhitelist) { return e.hide = true }
 	} else if (n_channelWhitelist) { return e.hide = true }
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
@@ -305,7 +307,7 @@ function n_onChat(e, untimed) {
 		e.dataObj.rankColor = '#7befef';
 	}
 }
-clientChatResponse(`>> the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> <<`);
+clientChatResponse(`&gt;&gt; the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> &lt;&lt;`);
 if (state.worldModel.name == '...network') {
 	clientChatResponse(`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`);
 }
@@ -774,7 +776,7 @@ hi, thanks for using ...network's shared chat!
 to read more about ...network, go to the north of <a style="text-decoration:underline" href="javascript:client_commands.warp(['...network'])">/...network</a>!
 
 double click a message to see its channels.
-triple click a message to delete it${nm_isMod?' locally':' for everyone'}.
+triple click a message to delete it ${nm_isMod?'for everyone':'locally'}.
 
 channels function like tags on a message, not like separate chatrooms.
 filter out bots messages using this command: /...channelf+ bot
@@ -783,7 +785,9 @@ use /...channel to view channels you are talking in, and /...channelf to view ch
 append + to either of these commands to start filtering/talking in a channel.
 append - to either of these commands to stop filtering/talking in a channel.
 append = to either of these commands to overwrite your (filtered) channels.
-pass w or b to /...channelf &lt;w,b&gt; to see [only/only not] messages using your filtered channels.`, true)
+pass w or b to /...channelf &lt;w,b&gt; to see [only/only not] messages using your filtered channels.
+
+use /.c to send a message in a channel without using it for other messages.`, true)
 }
 function nm_helpmod() {
 	clientChatResponse(`=== ...network moderation help ===
@@ -1102,6 +1106,22 @@ register_chat_command('...channelf=', function(args){
 	n_channels = args.join(' ').split(',');
 	clientChatResponse(`${n_channelWhitelist?'White':'Black'}listed only channels ${n_channels.join(',')}`);
 }, ['channels'], 'filter channels split by ,');
+
+register_chat_command('.c', function(args){
+	if (args.length < 2) return clientChatResponse(`Expected 2 arguments, received ${args.length}.`);
+	var chatText = args.slice(1).join(' ');
+	var opts = {customMeta:{}};
+	var channels = [...n_channels];
+	for (let channel in args[0].split(',')) {
+		if (!channels.includes(channel)) channels.push(channel);
+	}
+	opts.customMeta.channel = channels.join(',');
+	if (selectedChatTab == 2) opts.location = 'network';
+	if(defaultChatColor != null) {
+		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
+	}
+	api_chat_send(chatText, opts);
+}, ['channels', 'message'], 'quickly send a message in a channel');
 
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==

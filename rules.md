@@ -21,6 +21,9 @@ the following apply to the canvas of ...world, and the shared chat and canvas of
 the following apply to the shared chat of ...network.
 ## 1.1. spam
 1. you MUST NOT send repeated redundant or meaningless text
+2. every bot MUST use the 'bot' channel with the exception of:
+	1. a bot that bridges chatrooms, for example the OWOT Goatway (discor)
+	2. bots that are force unchanneled from 'bot'; see C-type limits in [/...network/limits](https://owot.me/limits)
 # 2. the canvas
 the following apply to the canvas of [/...world](https://owot.me/...world) and the canvas of [/...network](https://owot.me/...network).
 ## 2.0. dictionary
