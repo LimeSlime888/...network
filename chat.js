@@ -1031,7 +1031,7 @@ register_chat_command('...channelget', function(args){
 			return
 		}
 	}
-}, 'get channel of selected message');
+}, null, 'get channel of selected message');
 
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
