@@ -263,7 +263,7 @@ function n_onChat(e, untimed) {
 		let channels = e.customMeta.channel.split(',');
 		let filtered = false;
 		for (let channel of channels) {
-			if (channel.includes(n_channels)) {
+			if (n_channelFilters.includes(channel)) {
 				filtered = true;
 			}
 		}
@@ -307,11 +307,11 @@ function n_onChat(e, untimed) {
 		e.dataObj.rankColor = '#7befef';
 	}
 }
-clientChatResponse(`&gt;&gt; the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> &lt;&lt;`);
+clientChatResponse(`&gt;&gt; the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> &lt;&lt;`, true);
 if (state.worldModel.name == '...network') {
 	clientChatResponse(`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`);
 }
-clientChatResponse(`• also remember the rules; they can be found at <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a> for section 1. this link can be recalled via /...rules •`);
+clientChatResponse(`• also remember the rules; they can be found at <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a> for section 1. this link can be recalled via /...rules •`, true);
 
 // MODERATION
 
@@ -1122,6 +1122,11 @@ register_chat_command('.c', function(args){
 	}
 	api_chat_send(chatText, opts);
 }, ['channels', 'message'], 'quickly send a message in a channel');
+
+register_chat_command('refresh', function(args){
+	if (!args[0] || args[0][0] != 't') network.chathistory();
+	if (!args[1] || args[1][0] != 't') n_socket.send(`{"kind":"chathistory"}`);
+}, ['no_tp_and_g', 'no_network'], 'refresh chat history');
 
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
