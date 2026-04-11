@@ -97,9 +97,12 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 	chatAdditionsNetwork.splice(0);
 	return msgData.element;
 }
-function clientChatResponse(message) {
-	if (selectedChatTab == 2) { return n_addChat(0, "user", "[ Client ]", message, "Client", false, false, false, null, getDate()) }
-	addChat(null, 0, "user", "[ Client ]", message, "Client", false, false, false, null, getDate());
+function clientChatResponse(message, html=false) {
+	if (html) {
+		message = message.replaceAll('\n', '<br>');
+	}
+	if (selectedChatTab == 2) return n_addChat(0, "user", "[ Client ]", message, "Client", html, false, false, null, getDate());
+	addChat(null, 0, "user", "[ Client ]", message, "Client", html, false, false, null, getDate());
 }
 function getChatfield() {
 	if(selectedChatTab == 0) {
@@ -146,7 +149,10 @@ n_socket.onmessage = function(msg){
 		n_chatId = data.id;
 	}
 }
+
 var n_channels = [];
+var n_channelFilters = [];
+var n_channelWhitelist = false;
 sendChat = function() {
 	var chatText = elm.chatbar.value;
 	elm.chatbar.value = "";
@@ -158,6 +164,7 @@ sendChat = function() {
 	}
 	api_chat_send(chatText, opts);
 }
+
 w.on('chatsend', function(e){
 	if (selectedChatTab != 2 || e.message.startsWith('/')) return;
 	let global = nm_getGlobalLimits();
@@ -252,6 +259,14 @@ function n_onChat(e, untimed) {
 	if (e.hide) return;
 	let date = untimed ? e.date : Date.now();
 	if (nm_deletedMessages.includes(date)) return e.hide = true;
+	if (e.customMeta && e.customMeta.channel) {
+		let channels = e.customMeta.channel.split(',');
+		for (let channel of channels) {
+			if (channel.includes(n_channels) ^ n_channelWhitelist) {
+				return e.hide = true;
+			}
+		}
+	} else if (n_channelWhitelist) { return e.hide = true }
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
 	let user = e.realUsername || e.id;
@@ -290,9 +305,11 @@ function n_onChat(e, untimed) {
 		e.dataObj.rankColor = '#7befef';
 	}
 }
-clientChatResponse(`>> the intended centre of interaction for ...network is /...world <<`);
-clientChatResponse(`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`);
-clientChatResponse(`• also remember the rules; they can be found at https://github.com/LimeSlime888/...network/blob/main/rules.md for section 1. this link can be recalled via /...rules •`);
+clientChatResponse(`>> the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> <<`);
+if (state.worldModel.name == '...network') {
+	clientChatResponse(`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`);
+}
+clientChatResponse(`• also remember the rules; they can be found at <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a> for section 1. this link can be recalled via /...rules •`);
 
 // MODERATION
 
@@ -719,9 +736,10 @@ function nm_deleteMessageDate(date) {
 	}
 }
 var n_deleteStreak = 0;
-w.doAnnounce('Creating deletion streak bar...', 'nm_delete');
-w.doAnnounce('', 'nm_delete');
-n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
+w.doAnnounce('Creating multiple click bar...', 'nm_dblclick');
+w.doAnnounce('', 'nm_dblclick');
+n_chatfield.addEventListener("click", function(e){
+	if (e.detail < 2) return;
 	let element = e.target;
 	for (let i = 0; true; i++) {
 		if (element.tagName == 'DIV' && element.parentElement == n_chatfield) break;
@@ -730,19 +748,45 @@ n_chatfield.addEventListener("click", function(e){if(e.ctrlKey){
 		if (element == n_chatfield) return;
 		element = element.parentElement;
 	}
-	for (let message of chatRecordsNetwork) {
-		if (message.element == element) {
-			let closed = w.ui.announcements.nm_delete.bar.style.display;
-			if (closed) n_deleteStreak = 1;
-			else n_deleteStreak += 1;
-			w.doAnnounce(`Deleted ${n_deleteStreak} messages.`, 'nm_delete');
-			return nm_sendDeleteMessageDate(message.date);
+	let message;
+	for (let record of chatRecordsNetwork) {
+		if (record.element == element) { message = record }
+	}
+	if (!message) return w.doAnnounce('No messages found.', 'nm_dblclick');
+	if (e.detail == 2) {
+		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.channel) {
+			return w.doAnnounce(`Message has channels: ${message.dataObj.customMeta.channel}`);
+		} else {
+			return w.doAnnounce('Message has no channels.');
 		}
 	}
-	return w.doAnnounce('No messages found.', 'nm_delete');
-}});
+	if (e.detail == 3) {
+		let closed = w.ui.announcements.nm_dblclick.bar.style.display;
+		if (closed) n_deleteStreak = 1;
+		else n_deleteStreak += 1;
+		w.doAnnounce(`Deleted ${n_deleteStreak} messages.`, 'nm_dblclick');
+		return nm_sendDeleteMessageDate(message.date);
+	}
+});
 function nm_help() {
 	clientChatResponse(`=== ...network help ===
+hi, thanks for using ...network's shared chat!
+to read more about ...network, go to the north of <a style="text-decoration:underline" href="javascript:client_commands.warp(['...network'])">/...network</a>!
+
+double click a message to see its channels.
+triple click a message to delete it${nm_isMod?' locally':' for everyone'}.
+
+channels function like tags on a message, not like separate chatrooms.
+filter out bots messages using this command: /...channelf+ bot
+
+use /...channel to view channels you are talking in, and /...channelf to view channels you have filtered.
+append + to either of these commands to start filtering/talking in a channel.
+append - to either of these commands to stop filtering/talking in a channel.
+append = to either of these commands to overwrite your (filtered) channels.
+pass w or b to /...channelf &lt;w,b&gt; to see [only/only not] messages using your filtered channels.`, true)
+}
+function nm_helpmod() {
+	clientChatResponse(`=== ...network moderation help ===
 hi, thanks for volunteering to moderate ...network's shared chat!
 to limit users, you can use commands with names starting with ...
 view these commands in /help!
@@ -753,10 +797,10 @@ in updating commands, pass * to avoid updating the corresponding property.
 <type> is "m"=mute or "l"=ratelimit.
 <expire> is seconds to expiry. <0 = forever.
 <info> is additional info:
-- ratelimit: info #1 is minimum seconds per message.`)
+- ratelimit: info #1 is minimum seconds per message.`, true)
 }
 function nm_registerCommands() {
-	register_chat_command('...help', ()=>nm_help(), null, 'help for ...network chat moderation');
+	register_chat_command('...helpmod', ()=>nm_helpmod(), null, 'help for ...network chat moderation');
 
 	register_chat_command('...limit', function(args) {
 		let duration = +args[2];
@@ -890,12 +934,13 @@ function nm_registerCommands() {
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
 		nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork.length-1-i].date);
-	}, ['index'], `delete a message (0 = last message, 1 = second last message etc.)
-you can also do this by clicking a message while holding Ctrl`);
+	}, ['index'], 'delete a message (0 = last message, 1 = second last message etc.) - you can also do this by triple clicking a message');
 }
 
+register_chat_command('...help', ()=>nm_help(), null, 'help for ...network chat');
+
 register_chat_command('...rules', function() {
-	clientChatResponse('rules: https://github.com/LimeSlime888/...network/blob/main/rules.md, section 1');
+	clientChatResponse('rules: <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a>, section 1', true);
 }, null, 'recall the link to the ...network chat rules');
 
 register_chat_command('...list', function(args) {
@@ -980,8 +1025,7 @@ register_chat_command('...listglobal', function(args) {
 }, null, 'list all current global limits');
 
 register_chat_command('...channel', function(){
-	clientChatResponse(`== ${n_channels.length} channels ==
-`+n_channels.join(','));
+	clientChatResponse(`Talking in ${n_channels.length} channels: `+n_channels.join(','));
 }, null, 'list all selected channels');
 
 register_chat_command('...channel+', function(args){
@@ -994,8 +1038,9 @@ register_chat_command('...channel+', function(args){
 			changed.push(channel);
 		}
 	}
-	clientChatResponse(`Added channels ${changed.join(',')}`);
-}, ['channels'], 'add channels split by ,');
+	if (!changed.length) return clientChatResponse(`${channels.join(',')} already selected`);
+	clientChatResponse(`Started talking in channels ${changed.join(',')}`);
+}, ['channels'], 'start talking in channels split by ,');
 
 register_chat_command('...channel-', function(args){
 	let channels = args.join(' ').split(',');
@@ -1007,31 +1052,55 @@ register_chat_command('...channel-', function(args){
 			changed.push(channel);
 		}
 	}
-	clientChatResponse(`Removed channels ${changed.join(',')}`);
-}, ['channels'], 'remove channels split by ,');
+	if (!changed.length) return clientChatResponse(`${channels.join(',')} already unselected`);
+	clientChatResponse(`Stopped talking in channels ${changed.join(',')}`);
+}, ['channels'], 'stop talking in channels split by ,');
 
-register_chat_command('...channelget', function(args){
-	let selection = window.getSelection();
-	let element = selection.focusNode;
-	if (!selection.focusNode) return clientChatResponse('Not selecting');
-	for (let i = 0; true; i++) {
-		if (element.tagName == 'DIV' && element.parentElement == n_chatfield) break;
-		if (i > 12) return clientChatResponse('Not selecting a message');
-		if (!element) return clientChatResponse('Not selecting a message');
-		if (element == n_chatfield) return clientChatResponse('Not selecting a <div> in chatfield');
-		element = element.parentElement;
+register_chat_command('...channel=', function(args){
+	n_channels = args.join(' ').split(',');
+	clientChatResponse(`Talking in channels ${n_channels.join(',')}`);
+}, ['channels'], 'talk in channels split by ,');
+
+register_chat_command('...channelf', function(args){
+	if (args[0]) {
+		if (args[0][0] == 'w' || args[0][0] == 't') { n_channelWhitelist = true }
+		if (args[0][0] == 'b' || args[0][0] == 'f') { n_channelWhitelist = false }
 	}
-	for (let message of chatRecordsNetwork) {
-		if (message.element == element) {
-			if (message.dataObj.customMeta && message.dataObj.customMeta.channel) {
-				clientChatResponse(`Message has channels: ${message.dataObj.customMeta.channel}`);
-			} else {
-				clientChatResponse(`Message has no channels`);
-			}
-			return
+	clientChatResponse(`${n_channels.length} channels in ${n_channelWhitelist?'white':'black'}list: `+n_channels.join(','));
+}, ['<w(hite)/t(rue), b(lack)/f(alse)>'], 'list all selected channel filters; set filter whitelist/blacklist');
+
+register_chat_command('...channelf+', function(args){
+	let channels = args.join(' ').split(',');
+	let changed = [];
+	for (let channel of channels) {
+		let i = n_channelFilters.indexOf(channel);
+		if (i < 0) {
+			n_channelFilters.push(channel);
+			changed.push(channel);
 		}
 	}
-}, null, 'get channel of selected message');
+	if (!changed.length) return clientChatResponse(`${channels.join(',')} already ${n_channelWhitelist?'whitelisted':'blacklisted'}`);
+	clientChatResponse(`${n_channelWhitelist?'White':'Black'}listed channels ${changed.join(',')}`);
+}, ['channels'], 'start filtering channels split by , - you can see channels of a message by double clicking it');
+
+register_chat_command('...channelf-', function(args){
+	let channels = args.join(' ').split(',');
+	let changed = [];
+	for (let channel of channels) {
+		let i = n_channelFilters.indexOf(channel);
+		if (i >= 0) {
+			n_channelFilters.splice(i, 1);
+			changed.push(channel);
+		}
+	}
+	if (!changed.length) return clientChatResponse(`${channels.join(',')} already ${n_channelWhitelist?'whitelisted':'blacklisted'}`);
+	clientChatResponse(`De-${n_channelWhitelist?'white':'black'}listed channels ${changed.join(',')}`);
+}, ['channels'], 'stop filtering channels split by ,');
+
+register_chat_command('...channelf=', function(args){
+	n_channels = args.join(' ').split(',');
+	clientChatResponse(`${n_channelWhitelist?'White':'Black'}listed only channels ${n_channels.join(',')}`);
+}, ['channels'], 'filter channels split by ,');
 
 if (localStorage.networkWarning != 'true') {
 	clientChatResponse(`== WARNING ==
