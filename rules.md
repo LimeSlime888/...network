@@ -1,9 +1,11 @@
-the key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in rfc 2119.
+the key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in rfc 2119.  
+lettered points are notes that give context or tips to the rules, and are to be treated as part of the rules.  
+response to a violation of these rules are subject to Moderator/Operator discretion unless otherwise stated.
 
 # 0. global rules
 the following apply to the canvas of ...world, and the shared chat and canvas of ...network.
 ## 0.1. code of conduct
-1. you MUST act with respect towards all users of the ...network.
+1. you MUST act with respect towards all users of the ...network
     1. you MUST NOT (threaten a user with or promote) violence or other actions intended to cause harm
 2. you MUST NOT attempt to impersonate a user
     1. this does not include satirisation of a user via imitation, however you MUST indicate clearly that you are not the original user
@@ -14,16 +16,32 @@ the following apply to the canvas of ...world, and the shared chat and canvas of
     2. legal name
     3. date of birth or age, when specified more precisely than 1 year
     4. place of birth, when specified more precisely than country
-6. violations of 0.1.1~5 SHOULD be handled by informing the perpetrator of their violation and to take steps to avoid violation
-7. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
-8. if a person is known to have violated 0.1.1~5, they MAY be punished under an Operator's discretion.
+6. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
+7. a user SHOULD be excluded if deemed insufficiently mature by a Moderator's discretion
+	a. as a rule of thumb, if you're quite less mature than qwas~holyterrorist (at 2026-04-13), you're out
+## 0.2. debate conduct
+1. a Debate is classed under a Moderator's discretion. generally, a Debate is where multiple groups attempt to convince another group of a point.
+a. note that all other rules, especially 0.1.1, remains active under a Debate.
+this section is work-in-progress.
+
 # 1. the chat
 the following apply to the shared chat of ...network.
 ## 1.1. spam
 1. you MUST NOT send repeated redundant or meaningless text
 2. every bot MUST use the 'bot' channel with the exception of:
 	1. a bot that bridges chatrooms, for example the OWOT Goatway (discor)
+	a. bots that fall under 1.1.2.1 may be required to use the 'bridge' channel in the future.
 	2. bots that are force unchanneled from 'bot'; see C-type limits in [/...network/limits](https://owot.me/limits)
+## 1.2. prohibited content
+1. you MUST NOT {send or offer} {sexually explicit content or depictions of graphic violence} publicly
+2. you MUST NOT send or link to sexually suggestive images
+3. you MUST NOT send or link to sexually suggestive text, with the exception of sending minimal content in the 'sex' channel to give context to a topic
+	1. brief occasional sexually suggestive jokes/innuendos are allowed in the 'sex' channel
+	a. the "brief" and "occasional" of 1.2.3.1 are similar to how these jokes/innuendos are treated in the OWoT Discord server.
+4. sex-education discussion MUST use the 'sex' channel.
+5. users under 13 years of age MUST filter out the 'sex' channel locally
+	a. this will be enforced script-side in the near future.
+
 # 2. the canvas
 the following apply to the canvas of [/...world](https://owot.me/...world) and the canvas of [/...network](https://owot.me/...network).
 ## 2.0. dictionary
@@ -35,10 +53,9 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
     2. meaningful and nonredundant text
     3. tiles within |tileX \* tileY| ≤ 32
     4. roads not within 2.1.1.3
-3. violations of 2.1.1 will have their effects reverted as soon as possible if the revert does not break 2.1.1
-4. if a person is known to have violated 2.1.1, they SHOULD be punished under an Operator's discretion
-5. 2.1.1 does not apply within the purge limits during a purge
-6. 2.1.1.1~2 do not apply if the content violates other rules
+2. violations of 2.1.1 will have their effects reverted as soon as possible if the revert does not break 2.1.1
+3. 2.1.1 does not apply within the purge limits during a purge
+4. 2.1.1.1~2 do not apply if the overwritten content violates other rules
 ## 2.2. regenerating structures
 1. a Regenerating Structure is a collection of characters that are regenerated completely in the span of at most 24 hours
 2. you MUST NOT reinforce Regenerating Structures that cover at most 4 tiles for:
@@ -55,8 +72,12 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
 5. violations of 2.2.2~5 SHOULD be handled by protecting the area of the structure
 6. if a person is known to have violated 2.2.2~5, they MAY be punished under an Operator's discretion
 ## 2.3. prohibited content
-1. you MUST NOT link to or write sexually explicit content at any location in the canvas
-2. you MUST NOT link to or write sexually suggestive content to the canvas within 4096 tiles of spawn or within 32 tiles of a road
-3. you MUST NOT depict graphic violence
-4. violations of 2.3.1,3 MUST be handled by deleting the violating content as soon as possible
-5. violations of 2.3.2 MUST be handled by moving the violating content outside of where 2.3.2 applies as soon as possible
+1. you MUST NOT write or link to sexually explicit content
+2. you MUST NOT write or link to sexually suggestive images
+3. you MUST NOT write sexually suggestive text
+4. you MUST NOT link to sexually suggestive text, with the exception of sending minimal content to give context to a topic
+5. any links to sexually suggestive content MUST be marked clearly as sexually suggestive content
+a. 2.3.3~4 are not incredibly strict unless someone unsuitable to see the content is clearly present. however, it is still recommended not to break them.
+6. you MUST NOT depict graphic violence
+7. content violating 2.3.1~4,6 MUST be deleted as soon as possible
+8. links violating 2.3.5 MUST be marked clearly as sexually suggestive content
