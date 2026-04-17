@@ -32,14 +32,14 @@ the following apply to the shared chat of ...network.
 2. every bot MUST use the 'bot' channel with the exception of:
 	1. a bot that bridges chatrooms, for example the OWOT Goatway (discor)  
 	a. bots that fall under 1.1.2.1 may be required to use the 'bridge' channel in the future.
-	3. bots that are force unchanneled from 'bot'; see C-type limits in [/...network/limits](https://owot.me/limits)
+	2. bots that are force unchanneled from 'bot'; see C-type limits in [/...network/limits](https://owot.me/limits)
 ## 1.2. prohibited content
 1. you MUST NOT {send or offer} {sexually explicit content or depictions of graphic violence} publicly
 2. you MUST NOT send or link to sexually suggestive images
 3. you MUST NOT send or link to sexually suggestive text, with the exception of sending minimal content in the 'sex' channel to give context to a topic
 	1. brief occasional sexually suggestive jokes/innuendos are allowed in the 'sex' channel  
 	a. the "brief" and "occasional" of 1.2.3.1 are similar to how these jokes/innuendos are treated in the OWoT Discord server.
-4. sex-education discussion MUST use the 'sex' channel.
+4. sex-education discussion MUST use the 'sex' channel
 5. users under 13 years of age MUST filter out the 'sex' channel locally  
 	a. this will be enforced script-side in the near future.
 
