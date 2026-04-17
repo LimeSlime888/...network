@@ -1112,7 +1112,7 @@ register_chat_command('.c', function(args){
 	var chatText = args.slice(1).join(' ');
 	var opts = {customMeta:{}};
 	var channels = [...n_channels];
-	for (let channel in args[0].split(',')) {
+	for (let channel of args[0].split(',')) {
 		if (!channels.includes(channel)) channels.push(channel);
 	}
 	opts.customMeta.channel = channels.join(',');
