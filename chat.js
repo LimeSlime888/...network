@@ -271,7 +271,7 @@ function n_onChat(e, untimed) {
 	} else if (n_channelWhitelist) { return e.hide = true }
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
-	let user = e.realUsername || e.id;
+	let user = e.realUsername.toLowerCase() || e.id;
 	let lastChatted = untimed || nm_userLastChatted;
 	let affects = {};
 	if (userl[user]) {
