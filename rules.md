@@ -40,7 +40,7 @@ the following apply to the shared chat of ...network
 4. you MUST NOT send or link to sexually suggestive text
 	1. brief occasional sexually suggestive jokes/innuendos are allowed  
 	a. the "brief" and "occasional" of 1.2.4.1 are similar to how these jokes/innuendos are treated in the OWoT Discord server.
-5. discussion of any sexual topics (e.g. porn addiction, safe sex) SHOULD be deferred to outside of the ...network chat
+5. discussion of any sexual topics (e.g. porn addiction, safe sex) SHOULD be moved to outside of the ...network chat
 
 # 2. the canvas
 the following apply to the canvas of /...world and the canvas of /...network
