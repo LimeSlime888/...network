@@ -4,7 +4,7 @@ lettered points are notes that give context or tips to the rules, and are to be 
 response to a violation of these rules are subject to Moderator/Operator discretion unless otherwise stated.
 
 # 0. global rules
-the following apply to the canvas of ...world, and the shared chat and canvas of ...network.
+the following apply to the canvas of [/...world](https://owot.me/...world) and the shared chat and canvas of [/...network](https://owot.me/...network)
 ## 0.1. code of conduct
 1. you MUST act with respect towards all users of the ...network
     1. you MUST NOT (threaten a user with or promote) violence or other actions intended to cause harm
@@ -26,7 +26,7 @@ a. note that all other rules, especially 0.1.1, remains active under a Debate.
 this section is work-in-progress.
 
 # 1. the chat
-the following apply to the shared chat of ...network.
+the following apply to the shared chat of ...network
 ## 1.1. spam
 1. you MUST NOT send repeated redundant or meaningless text
 2. every bot MUST use the 'bot' channel with the exception of:
@@ -34,17 +34,16 @@ the following apply to the shared chat of ...network.
 	a. bots that fall under 1.1.2.1 may be required to use the 'bridge' channel in the future.
 	2. bots that are force unchanneled from 'bot'; see C-type limits in [/...network/limits](https://owot.me/limits)
 ## 1.2. prohibited content
-1. you MUST NOT {send or offer} {sexually explicit content or depictions of graphic violence} publicly
-2. you MUST NOT send or link to sexually suggestive images
-3. you MUST NOT send or link to sexually suggestive text, with the exception of sending minimal content in the 'sex' channel to give context to a topic
-	1. brief occasional sexually suggestive jokes/innuendos are allowed in the 'sex' channel  
-	a. the "brief" and "occasional" of 1.2.3.1 are similar to how these jokes/innuendos are treated in the OWoT Discord server.
-4. sex-education discussion MUST use the 'sex' channel
-5. users under 13 years of age MUST filter out the 'sex' channel locally  
-	a. this will be enforced script-side in the near future.
+1. you MUST NOT send or link to depictions of graphic violence
+2. you MUST NOT send or link to sexually explicit content
+3. you MUST NOT send or link to sexually suggestive images
+4. you MUST NOT send or link to sexually suggestive text
+	1. brief occasional sexually suggestive jokes/innuendos are allowed  
+	a. the "brief" and "occasional" of 1.2.4.1 are similar to how these jokes/innuendos are treated in the OWoT Discord server.
+5. discussion of any sexual topics (e.g. porn addiction, safe sex) SHOULD be deferred to outside of the ...network chat
 
 # 2. the canvas
-the following apply to the canvas of [/...world](https://owot.me/...world) and the canvas of [/...network](https://owot.me/...network).
+the following apply to the canvas of /...world and the canvas of /...network
 ## 2.0. dictionary
 1. *within n tiles of spawn* means within any tile where (tileX+.5)² + (tileY-.5)² ≤ n²
 2. *road* means a linear structure that spans 128 tiles or more measured at its widest and 4 tiles or less measured at its thinnest

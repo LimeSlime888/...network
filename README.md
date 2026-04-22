@@ -8,8 +8,7 @@ channels function like tags on a message. non-goatway bots MUST use the 'bot' ch
 channels are used by adding a list of channels separated by ',' to the 'channel' key.  
 one can blacklist and whitelist channels. to see the channels of a message, one can double-click it.  
 one may use the /.c command to send a message in a channel quickly.  
-policies regarding the 'bot', 'sex', 'bridge' channels are discussed in [...rules](/rules.md) section 1.2.
-(the 'sex' channel isn't as lenient as you think it is)
+policies regarding the 'bot', 'bridge' channels are discussed in [...rules](/rules.md) section 1.2.
 
 ## moderation
 the [moderators](/moderators.txt) moderate according to [...rules](/rules.md). moderators:
