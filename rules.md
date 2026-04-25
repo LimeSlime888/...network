@@ -20,10 +20,6 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
 6. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
 7. a user SHOULD be excluded if deemed insufficiently mature by a Moderator's discretion  
 	a. as a rule of thumb, if you're quite less mature than qwas~holyterrorist (at 2026-04-13), you're out
-## 0.2. debate conduct
-1. a Debate is classed under a Moderator's discretion. generally, a Debate is where multiple groups attempt to convince another group of a point.  
-a. note that all other rules, especially 0.1.1, remains active under a Debate.  
-this section is work-in-progress.
 
 # 1. the chat
 the following apply to the shared chat of ...network
@@ -38,9 +34,8 @@ the following apply to the shared chat of ...network
 2. you MUST NOT send or link to sexually explicit content
 3. you MUST NOT send or link to sexually suggestive images
 4. you MUST NOT send or link to sexually suggestive text
-	1. brief occasional sexually suggestive jokes/innuendos are allowed  
-	a. the "brief" and "occasional" of 1.2.4.1 are similar to how these jokes/innuendos are treated in the OWoT Discord server.
-5. discussion of any sexual topics (e.g. porn addiction, safe sex) SHOULD be moved to outside of the ...network chat
+	1. brief occasional sexually suggestive jokes/innuendos are allowed
+5. discussion of any sexual topics (e.g. porn addiction, safe sex) MUST be moved to outside of the ...network chat
 
 # 2. the canvas
 the following apply to the canvas of /...world and the canvas of /...network
@@ -57,27 +52,19 @@ the following apply to the canvas of /...world and the canvas of /...network
 3. 2.1.1 does not apply within the purge limits during a purge
 4. 2.1.1.1~2 do not apply if the overwritten content violates other rules
 ## 2.2. regenerating structures
+## 2.2. regenerating structures
 1. a Regenerating Structure is a collection of characters that are regenerated completely in the span of at most 24 hours
-2. you MUST NOT reinforce Regenerating Structures that cover at most 4 tiles for:
-    1. more than 16 in 72 hours within 4 tiles of spawn
-    2. more than 36 in 72 hours within 10 tiles of spawn
-3. you MUST NOT reinforce Regenerating Structures that cover 5~16 tiles for:
-    1. within 4 tiles of spawn
-    2. more than 16 in 72 hours within 10 tiles of spawn
-    3. more than 36 in 72 hours within 20 tiles of spawn
-4. you MUST NOT reinforce Regenerating Structures that cover 17~36 tiles for:
-    1. within 10 tiles of spawn
-    2. more than 16 in 72 hours within 20 tiles of spawn
-    3. more than 36 in 72 hours within 32 tiles of spawn
-5. violations of 2.2.2~5 SHOULD be handled by protecting the area of the structure
-6. if a person is known to have violated 2.2.2~5, they MAY be punished under an Operator's discretion
+2. you MUST NOT reinforce a Regenerating Structure if its contents do not change
+3. you MUST NOT reinforce a Regenerating Structure that covers more than 25 tiles and is within 32 tiles of spawn
+4. Regenerating Structures not under 2.2.2~3 are allowed under a Moderator's discretion
+5. violations of 2.2.2~4 SHOULD be handled by protecting the area of the structure
+6. if a person is known to have violated 2.2.2~4, they MAY be punished under an Operator's discretion
 ## 2.3. prohibited content
 1. you MUST NOT write or link to sexually explicit content
 2. you MUST NOT write or link to sexually suggestive images
 3. you MUST NOT write sexually suggestive text
 4. you MUST NOT link to sexually suggestive text, with the exception of sending minimal content to give context to a topic
-5. any links to sexually suggestive content MUST be marked clearly as sexually suggestive content  
-a. 2.3.3~4 are not incredibly strict unless someone unsuitable to see the content is clearly present. however, it is still recommended not to break them.
+5. any links to sexually suggestive content MUST be marked clearly as sexually suggestive content
 6. you MUST NOT depict graphic violence
 7. content violating 2.3.1~4,6 MUST be deleted as soon as possible
 8. links violating 2.3.5 MUST be marked clearly as sexually suggestive content
