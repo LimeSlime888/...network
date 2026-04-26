@@ -418,7 +418,7 @@ function nm_makeLargeInt(n=0) {
 function nm_cleanLimit(n=0) {
 	let date = getDate();
 	let x = Math.max(n, 0);
-	let y = Math.max(-n - 1, 0);
+	let y = Math.max(-n - 2, 0);
 	let writes = [];
 	if (n < 0) {
 		for (let i = 0; i < 15; i++) {
@@ -468,6 +468,7 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 		infoY = 7;
 		y = 0
 	}
+
 	let write_id;
 	if (newId) {
 		newId = Math.floor(Math.random() * 281474976710656);
@@ -485,6 +486,7 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 			continue;
 		write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...nm_makeLargeInt(param[1])])
 	}
+
 	let write_user = [];
 	if (typeof user == 'string') {
 		let i = 0;
@@ -495,20 +497,16 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 	} else if (user < 0) {} else {
 		write_user.push([y, x, 0, 0, date, '•', nextObjId++, 0xffffff, user])
 	}
+
 	let cleanN;
-	if (typeof user == 'number' && user < 0)
-		cleanN = user - 1;
-	else
-		cleanN = x;
+	if (typeof user == 'number' && user < 0) cleanN = user - 1;
+	else cleanN = x;
+
 	let writes = [...write_info, ...write_user];
-	if (clean)
-		writes.unshift(...nm_cleanLimit(cleanN));
-	if (write_type)
-		writes.push(write_type);
-	if (write_expire)
-		writes.push(write_expire);
-	if (write_id)
-		writes.push(write_id);
+	if (clean) writes.unshift(...nm_cleanLimit(cleanN));
+	if (write_type) writes.push(write_type);
+	if (write_expire) writes.push(write_expire);
+	if (write_id) writes.push(write_id);
 	nm_network.write(writes);
 	flushWrites();
 }
