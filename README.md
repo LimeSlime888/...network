@@ -5,7 +5,7 @@ the ...network chat is a shared chat between many worlds that aims to be a moder
 
 ## channels
 channels function like tags on a message. non-goatway bots MUST use the 'bot' channel.  
-channels are used by adding a list of channels separated by ',' to the 'channel' key.  
+channels are used by adding a list of channels separated by <code>,</code> to the <code>channel</code> key of a message's <code>customMeta</code>.  
 one can blacklist and whitelist channels. to see the channels of a message, one can double-click it.  
 one may use the /.c command to send a message in a channel quickly.  
 policies regarding the 'bot', 'bridge' channels are discussed in [...rules](/rules.md) section 1.2.
