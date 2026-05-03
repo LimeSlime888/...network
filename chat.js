@@ -328,6 +328,7 @@ you're a moderator for ...network. use /...help or go to /...network/limits for 
 	} else { nm_isMod = false }
 }
 nm_fetchMods();
+
 var nm_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/limits/ws/?hide=1');
 nm_socket.onmessage = function(msg) {
 	var data = JSON.parse(msg.data);
@@ -394,6 +395,35 @@ var nm_network = {
 			data: data
 		};
 		nm_network.transmit(req);
+	},
+	link: function(position, type, args) {
+		// position: {tileX, tileY, charX, charY}
+		// type: <url, coord>
+		// args: {url} or {x, y, relative}
+		var data = {
+			tileY: position.tileY,
+			tileX: position.tileX,
+			charY: position.charY,
+			charX: position.charX
+		};
+		if(!("tileX" in position || "tileY" in position)) {
+			data.tileX = Math.floor(data.charX / tileC);
+			data.tileY = Math.floor(data.charY / tileR);
+			data.charX = data.charX - Math.floor(data.charX / tileC) * tileC;
+			data.charY = data.charY - Math.floor(data.charY / tileR) * tileR;
+		}
+		if(type == "url") {
+			data.url = args.url;
+		} else if(type == "coord") {
+			data.link_tileX = args.x;
+			data.link_tileY = args.y;
+			data.relative = args.relative;
+		}
+		nm_network.transmit({
+			kind: "link",
+			data: data,
+			type: type
+		});
 	}
 };
 var nm_events = {
@@ -408,6 +438,7 @@ var nm_events = {
 		}
 	}
 }
+
 function nm_parseLargeInt(fg=0, bg=0) {
 	if (bg < 0) bg = 0;
 	return bg * 16777216 + fg
@@ -415,7 +446,7 @@ function nm_parseLargeInt(fg=0, bg=0) {
 function nm_makeLargeInt(n=0) {
 	return [Math.floor(n % 16777216), n < 16777216 ? -1 : Math.floor(n / 16777216)]
 }
-function nm_cleanLimit(n=0) {
+function nm_cleanLimit(n=0, noInfoRow=false) {
 	let date = getDate();
 	let x = Math.max(n, 0);
 	let y = Math.max(-n - 2, 0);
@@ -425,7 +456,7 @@ function nm_cleanLimit(n=0) {
 			writes.push([-1, 0, y, i, date, ' ', nextObjId++]);
 		}
 	} else {
-		for (let i = 0; i < 127; i++) {
+		for (let i = 0; i < (noInfoRow?112:127); i++) {
 			writes.push([0, x, Math.floor(i / 16), i % 16, date, ' ', nextObjId++]);
 		}
 	}
@@ -482,9 +513,16 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 	}
 	for (let param of Object.entries(info)) {
 		let index = +param[0];
-		if (index > 11 || isNaN(param[1] = +param[1]))
-			continue;
-		write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...nm_makeLargeInt(param[1])])
+		if (index > 11) continue;
+		if (isNaN(+param[1])) {
+			write_info.push([y, x, infoY, 2 + index, date, '-', nextObjId++, 0, -1]);
+			nm_network.link(
+				{tileY: y, tileX: x, charY: infoY, charX: 2 + index},
+				'url', {url: 'note:'+param[1]}
+			);
+		} else {
+			write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...nm_makeLargeInt(+param[1])])
+		}
 	}
 
 	let write_user = [];
@@ -494,16 +532,20 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 			write_user.push([y, x, Math.floor(i / 16), i % 16, date, char, nextObjId++]);
 			i += 1;
 		}
-	} else if (user < 0) {} else {
+	} else if (user < 0 || user == null) {} else {
 		write_user.push([y, x, 0, 0, date, '•', nextObjId++, 0xffffff, user])
 	}
+
+	let writes = [...write_info, ...write_user];
 
 	let cleanN;
 	if (typeof user == 'number' && user < 0) cleanN = user - 1;
 	else cleanN = x;
-
-	let writes = [...write_info, ...write_user];
-	if (clean) writes.unshift(...nm_cleanLimit(cleanN));
+	if (clean) {
+		writes.unshift(...nm_cleanLimit(cleanN));
+	} else if (write_user.length) {
+		writes.unshift(...nm_cleanLimit(cleanN, true));
+	}
 	if (write_type) writes.push(write_type);
 	if (write_expire) writes.push(write_expire);
 	if (write_id) writes.push(write_id);
@@ -554,7 +596,7 @@ function nm_readLimit(tile, row=-1) {
 	return {type, expire, info, user, id};
 }
 var nm_userLimits = [];
-var nm_globalLimits = [, , , , , , , , ];
+var nm_globalLimits = Array(8);
 var nm_deletedMessages = Array(256);
 var nm_userLastChatted = {};
 var nm_lastSentMessage = 0;
@@ -873,6 +915,7 @@ function nm_registerCommands() {
 				else args[i] = null;
 			}
 		}
+		while (args.length < 4) { args.push(null) }
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
 	}, ['x', 'user', 'type', 'expire', '...info'], 'update a user limit');
@@ -895,6 +938,7 @@ function nm_registerCommands() {
 				else args[i] = null;
 			}
 		}
+		while (args.length < 4) { args.push(null) }
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
 	}, ['x', 'id', 'type', 'expire', '...info'], 'update a user limit (to an anon id if required)');
@@ -919,6 +963,7 @@ function nm_registerCommands() {
 		}
 		args[0] = -(+args[0])-1;
 		args.splice(0, 0, 0);
+		while (args.length < 4) { args.push(null) }
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
 	}, ['y', 'type', 'expire', '...info'], 'update a global limit');
