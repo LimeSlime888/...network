@@ -2,7 +2,7 @@ const n_networkIndicator = "hiiii hello :333";
 
 var n_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/ws/');
 elm.chat_page_tab.style.minWidth = '80px';
-if (state.worldModel.no_chat_global) {
+if (state.worldModel.chat_global_tab || elm.chat_global_tab.style.display == 'none') {
 	elm.chat_upper.style.textAlign = '';
 	elm.chat_page_tab.style.display = '';
 	elm.usr_online.style.paddingLeft = '';
@@ -151,8 +151,9 @@ n_socket.onmessage = function(msg){
 }
 
 var n_channels = [];
-var n_channelFilters = [];
-var n_channelWhitelist = false;
+var n_channelWhitelist = [];
+var n_channelBlacklist = [];
+var n_channelWhitePriority = false;
 sendChat = function() {
 	var chatText = elm.chatbar.value;
 	elm.chatbar.value = "";
@@ -164,6 +165,176 @@ sendChat = function() {
 	}
 	api_chat_send(chatText, opts);
 }
+
+function n_makeFilterElement(opts={}, activated=true){
+	// opts: {action, value, white, enabled}
+	let tr = document.createElement('tr');
+	tr.style.display = 'flex';
+	tr.style.alignItems = 'center';
+
+	tr.action = document.createElement('button');
+	tr.action.innerText = opts.action ?? '❌';
+	if (activated) {
+		tr.action.addEventListener('click', function(){
+			tr.remove();
+			if (!tr.enable.checked) return;
+			let list = tr.white?n_channelWhitelist:n_channelBlacklist;
+			let i = list.indexOf(tr.channel);
+			if (i >= 0) list.splice(i, 1);
+		});
+	}
+
+	tr.input = document.createElement('input');
+	tr.input.style.width = 'unset';
+	tr.input.style.minWidth = 'field'
+	tr.channel = tr.input.value = opts.value ?? '';
+	if (activated) {
+		tr.input.addEventListener('change', function(){
+			if (!tr.enable.checked) return;
+			let list = tr.white?n_channelWhitelist:n_channelBlacklist;
+			let i = list.indexOf(tr.channel);
+			if (i >= 0) list[i] = tr.channel = tr.input.value;
+		});
+		tr.input.addEventListener('keydown', function(e){
+			if (e.key == 'Enter') tr.blur();
+		});
+	}
+
+	tr.type = document.createElement('span');
+	tr.type.style.height = tr.type.style.borderRadius = '1em';
+	tr.type.style.aspectRatio = '1';
+	tr.type.style.cursor = 'pointer';
+	if (opts.white) {
+		tr.type.style.border = '1px solid black';
+		tr.type.style.background = 'white';
+		tr.white = true;
+	} else {
+		tr.type.style.border = '1px solid white';
+		tr.type.style.background = 'black';
+		tr.white = false;
+	}
+	if (activated) {
+		tr.type.addEventListener('click', function(){
+			if (tr.enable.checked) {
+				let list = tr.white?n_channelWhitelist:n_channelBlacklist;
+				let i = list.indexOf(tr.channel);
+				if (i >= 0) {
+					let olist = tr.white?n_channelBlacklist:n_channelWhitelist;
+					olist.push(...list.splice(i, 1));
+				}
+			}
+			tr.white = !tr.white;
+			if (tr.white) {
+				tr.type.style.border = '1px solid black';
+				tr.type.style.background = 'white';
+			} else {
+				tr.type.style.border = '1px solid white';
+				tr.type.style.background = 'black';
+			}
+		})
+	}
+
+	tr.enable = document.createElement('input');
+	tr.enable.type = 'checkbox';
+	tr.enable.checked = opts.enabled ?? true;
+	if (activated) {
+		tr.enable.addEventListener('change', function(){
+			let list = tr.white?n_channelWhitelist:n_channelBlacklist;
+			if (tr.enable.checked) {
+				list.push(tr.channel);
+			} else {
+				let i = list.indexOf(tr.channel);
+				if (i >= 0) list.splice(i, 1);
+			}
+		});
+	}
+
+	tr.input.style.marginLeft = '4px';
+	tr.type.style.marginLeft =
+	tr.enable.style.marginLeft = '6px';
+	tr.append(tr.action, tr.input, tr.type, tr.enable);
+	return tr;
+}
+function n_createChannelFilterModal(){
+	var modal = w.ui.n_filterModal = new Modal();
+	modal.createForm();
+	modal.setFormTitle('Channel filters');
+	modal.inputField.style.display = '';
+	modal.inputField.style.gridTemplateColumns = '';
+	modal.subField.childNodes[1].remove();
+	modal.subField.childNodes[1].remove();
+	modal.subField.childNodes[0].innerText = 'Close';
+
+	let priorityCheck = document.createElement('input'),
+		priorityLabel = document.createElement('label'),
+		table = document.createElement('table'),
+		tableHead = document.createElement('thead'),
+		tableBody = document.createElement('tbody');
+	tableBody.style.display = 'block';
+	tableBody.style.maxHeight = '50vh';
+	tableBody.style.overflowY = 'auto';
+
+	priorityCheck.type = 'checkbox';
+	priorityCheck.checked = n_channelWhitePriority;
+	priorityCheck.addEventListener('change', function(){
+		n_channelWhitePriority = priorityCheck.checked;
+	});
+	priorityLabel.innerText = ' Whitelist over blacklist';
+
+	let creator = n_makeFilterElement({action:'➕'}, false);
+	creator.type.addEventListener('click', function(){
+		creator.white = !creator.white;
+		if (creator.white) {
+			creator.type.style.border = '1px solid black';
+			creator.type.style.background = 'white';
+		} else {
+			creator.type.style.border = '1px solid white';
+			creator.type.style.background = 'black';
+		}
+	});
+	creator.input.addEventListener('keypress', function(e){
+		if (e.key == 'Enter') {
+			creator.action.click();
+			creator.input.value = '';
+		}
+	})
+	creator.action.addEventListener('click', function(){
+		if (creator.enable.checked) {
+			let list = creator.white?n_channelWhitelist:n_channelBlacklist;
+			list.push(creator.input.value);
+		}
+		tableBody.append(n_makeFilterElement({
+			value: creator.input.value,
+			white: creator.white,
+			enabled: creator.enable.checked,
+		}));
+	})
+	tableHead.append(creator);
+
+	let recommendations = ['bot', 'nsfw'];
+	for (let channel of n_channelBlacklist) {
+		tableBody.append(n_makeFilterElement({value:channel}));
+		if (recommendations.length) {
+			let i = recommendations.indexOf(channel);
+			if (i >= 0) recommendations.splice(i, 1);
+		}
+	}
+	for (let channel of n_channelWhitelist) {
+		tableBody.append(n_makeFilterElement({value:channel,white:true}));
+		if (recommendations.length) {
+			let i = recommendations.indexOf(channel);
+			if (i >= 0) recommendations.splice(i, 1);
+		}
+	}
+	for (let channel of recommendations) {
+		tableBody.append(n_makeFilterElement({value:channel,enabled:false}));
+	}
+
+	table.append(tableHead, tableBody);
+	modal.inputField.append(priorityCheck, priorityLabel,
+		document.createElement('br'), table);
+}
+n_createChannelFilterModal();
 
 w.on('chatsend', function(e){
 	if (selectedChatTab != 2 || e.message.startsWith('/')) return;
@@ -259,16 +430,26 @@ function n_onChat(e, untimed) {
 	if (e.hide) return;
 	let date = untimed ? e.date : Date.now();
 	if (nm_deletedMessages.includes(date)) return e.hide = true;
+
+	let whitelisted = false;
+	let blacklisted = false;
 	if (e.customMeta && e.customMeta.channel) {
 		let channels = e.customMeta.channel.split(',');
-		let filtered = false;
 		for (let channel of channels) {
-			if (n_channelFilters.includes(channel)) {
-				filtered = true;
+			if (n_channelBlacklist.includes(channel)) {
+				blacklisted = true;
+			}
+			if (n_channelWhitelist.includes(channel)) {
+				whitelisted = true;
 			}
 		}
-		if (filtered ^ n_channelWhitelist) { return e.hide = true }
-	} else if (n_channelWhitelist) { return e.hide = true }
+	}
+	if (n_channelWhitePriority) {
+		if (!whitelisted || blacklisted) return e.hide = true;
+	} else {
+		if (blacklisted && !whitelisted) return e.hide = true;
+	}
+
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
 	let user = e.realUsername.toLowerCase() || e.id;
@@ -819,15 +1000,14 @@ double click a message to see its channels.
 triple click a message to delete it ${nm_isMod?'for everyone':'locally'}.
 
 channels function like tags on a message, not like separate chatrooms.
-filter out bots messages using this command: /...channelf+ bot
+filter out bots messages using this command: /...channelf w+ bot
 
 use /...channel to view channels you are talking in, and /...channelf to view channels you have filtered.
-append + to either of these commands to start filtering/talking in a channel.
-append - to either of these commands to stop filtering/talking in a channel.
-append = to either of these commands to overwrite your (filtered) channels.
-pass w or b to /...channelf &lt;w,b&gt; to see [only/only not] messages using your filtered channels.
+pass +[channel] to either of these commands to start filtering/talking in a channel.
+pass -[channel] to either of these commands to stop filtering/talking in a channel.
+pass =[channel] to either of these commands to overwrite your (filtered) channels.
 
-use /.c to send a message in a channel without using it for other messages.`, true)
+use /.c &lt;channel&gt; &lt;message&gt; to send a message in a channel without using it for other messages.`, true)
 }
 function nm_helpmod() {
 	clientChatResponse(`=== ...network moderation help ===
@@ -1110,45 +1290,8 @@ register_chat_command('...channel=', function(args){
 }, ['channels'], 'talk in channels split by ,');
 
 register_chat_command('...channelf', function(args){
-	if (args[0]) {
-		if (args[0][0] == 'w' || args[0][0] == 't') { n_channelWhitelist = true }
-		if (args[0][0] == 'b' || args[0][0] == 'f') { n_channelWhitelist = false }
-	}
-	clientChatResponse(`${n_channels.length} channels in ${n_channelWhitelist?'white':'black'}list: `+n_channels.join(','));
-}, ['<w(hite)/t(rue), b(lack)/f(alse)>'], 'list all selected channel filters; set filter whitelist/blacklist');
-
-register_chat_command('...channelf+', function(args){
-	let channels = args.join(' ').split(',');
-	let changed = [];
-	for (let channel of channels) {
-		let i = n_channelFilters.indexOf(channel);
-		if (i < 0) {
-			n_channelFilters.push(channel);
-			changed.push(channel);
-		}
-	}
-	if (!changed.length) return clientChatResponse(`${channels.join(',')} already ${n_channelWhitelist?'whitelisted':'blacklisted'}`);
-	clientChatResponse(`${n_channelWhitelist?'White':'Black'}listed channels ${changed.join(',')}`);
-}, ['channels'], 'start filtering channels split by , - you can see channels of a message by double clicking it');
-
-register_chat_command('...channelf-', function(args){
-	let channels = args.join(' ').split(',');
-	let changed = [];
-	for (let channel of channels) {
-		let i = n_channelFilters.indexOf(channel);
-		if (i >= 0) {
-			n_channelFilters.splice(i, 1);
-			changed.push(channel);
-		}
-	}
-	if (!changed.length) return clientChatResponse(`${channels.join(',')} already ${n_channelWhitelist?'whitelisted':'blacklisted'}`);
-	clientChatResponse(`De-${n_channelWhitelist?'white':'black'}listed channels ${changed.join(',')}`);
-}, ['channels'], 'stop filtering channels split by ,');
-
-register_chat_command('...channelf=', function(args){
-	n_channels = args.join(' ').split(',');
-	clientChatResponse(`${n_channelWhitelist?'White':'Black'}listed only channels ${n_channels.join(',')}`);
-}, ['channels'], 'filter channels split by ,');
+	w.ui.n_filterModal.open();
+}, ['[w/b][+/-/=]'], 'list all selected channel filters; set filter whitelist/blacklist');
 
 register_chat_command('.c', function(args){
 	if (args.length < 2) return clientChatResponse(`Expected 2 arguments, received ${args.length}.`);

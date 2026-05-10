@@ -34,7 +34,8 @@ the following apply to the shared chat of ...network
 2. you MUST NOT send or link to sexually explicit content
 3. you MUST NOT send or link to sexually suggestive images
 4. you MUST NOT send or link to sexually suggestive text
-	1. brief occasional sexually suggestive jokes/innuendos are allowed
+	1. brief occasional sexually suggestive jokes/innuendos are allowed ONLY in the 'nsfw' channel
+	2. a user under 13 years of age MUST blacklist the 'nsfw' channel
 5. discussion of any sexual topics (e.g. porn addiction, safe sex) MUST be moved to outside of the ...network chat
 
 # 2. the canvas
@@ -51,7 +52,6 @@ the following apply to the canvas of /...world and the canvas of /...network
 2. violations of 2.1.1 will have their effects reverted as soon as possible if the revert does not break 2.1.1
 3. 2.1.1 does not apply within the purge limits during a purge
 4. 2.1.1.1~2 do not apply if the overwritten content violates other rules
-## 2.2. regenerating structures
 ## 2.2. regenerating structures
 1. a Regenerating Structure is a collection of characters that are regenerated completely in the span of at most 24 hours
 2. you MUST NOT reinforce a Regenerating Structure if its contents do not change
