@@ -16,13 +16,14 @@ the following apply to [/...world](https://owot.me/...world) canvas, [/...networ
     2. legal name
     3. age, more precisely than 1 year
     4. where they were born, more precisely than the country
-5. if you're less mature than around qwas or holy-terrorist (at 2026-04-13) then you should not be here at all
+5. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
+6. if you're less mature than around qwas or holy-terrorist (at 2026-04-13) then you should not be here at all
 
 # 1. the chat
 the following apply to /...network chat.
 ## 1.1. spam
 1. don't send repeated redundant or meaningless text
-2. bots must use the 'bot' channel, unless it bridges chatrooms or it's forced out of the channel
+2. bots must use the 'bot' tag, unless it bridges chatrooms or it's forced out of the tag
 ## 1.2. prohibited content
 1. don't send or link to gore
 2. don't send or link to sexually explicit content
@@ -47,17 +48,14 @@ the following apply to /...world canvas and /...network canvas.
 4. 2.1.1.1~2 do not apply if the overwritten content violates other rules
 ## 2.2. regenerating structures
 1. a Regenerating Structure is a collection of characters that are regenerated completely in the span of at most 24 hours
-2. you MUST NOT reinforce a Regenerating Structure if its contents do not change
+2. you MUST NOT reinforce a Regenerating Structure within 128 tiles of spawn if its contents do not change
 3. you MUST NOT reinforce a Regenerating Structure that covers more than 25 tiles and is within 32 tiles of spawn
 4. Regenerating Structures not under 2.2.2~3 are allowed under a Moderator's discretion
 5. violations of 2.2.2~4 SHOULD be handled by protecting the area of the structure
-6. if a person is known to have violated 2.2.2~5, they MAY be punished under an Operator's discretion
 ## 2.3. prohibited content
 1. don't write or link to sexually explicit content
 2. don't write or link to sexually suggestive images
 3. don't write sexually suggestive text
-	1. brief occasional sexually suggestive jokes/innuendos are allowed
 4. don't link to sexually suggestive text, apart from sending minimal content to give context to a topic
 5. any links to sexually suggestive content must be marked as sexually suggestive content
 6. don't write or link to gore
-7. content violating 2.3.1~4,6 MUST be deleted as soon as possible

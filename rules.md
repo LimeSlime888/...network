@@ -1,7 +1,7 @@
 the key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in rfc 2119.  
 lettered points are notes that give context or tips to the rules, and are to be treated as part of the rules.  
 (note: on GitHub, formatting is not as intended. use the text view, or treat notes that appear parented to a point as a sibling to that point)  
-response to a violation of these rules are subject to Moderator/Operator discretion unless otherwise stated.
+response to a violation of these rules are subject to Moderator discretion unless otherwise stated.
 
 # 0. global rules
 the following apply to the canvas of [/...world](https://owot.me/...world) and the shared chat and canvas of [/...network](https://owot.me/...network)
@@ -25,17 +25,17 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
 the following apply to the shared chat of ...network
 ## 1.1. spam
 1. you MUST NOT send repeated redundant or meaningless text
-2. every bot MUST use the 'bot' channel with the exception of:
+2. every bot MUST use the 'bot' tag with the exception of:
 	1. a bot that bridges chatrooms, for example the OWOT Goatway (discor)  
-	a. bots that fall under 1.1.2.1 may be required to use the 'bridge' channel in the future.
-	2. bots that are force unchanneled from 'bot'; see C-type limits in [/...network/limits](https://owot.me/limits)
+	a. bots that fall under 1.1.2.1 may be required to use the 'bridge' tag in the future.
+	2. bots that are force untagged from 'bot'; see T-type limits in [/...network/limits](https://owot.me/limits)
 ## 1.2. prohibited content
 1. you MUST NOT send or link to depictions of graphic violence
 2. you MUST NOT send or link to sexually explicit content
 3. you MUST NOT send or link to sexually suggestive images
 4. you MUST NOT send or link to sexually suggestive text
-	1. brief occasional sexually suggestive jokes/innuendos are allowed ONLY in the 'nsfw' channel
-	2. a user under 13 years of age MUST blacklist the 'nsfw' channel
+	1. brief occasional sexually suggestive jokes/innuendos are allowed ONLY using the 'nsfw' tag
+	2. a user under 13 years of age MUST blacklist the 'nsfw' tag
 5. discussion of any sexual topics (e.g. porn addiction, safe sex) MUST be moved to outside of the ...network chat
 
 # 2. the canvas
@@ -54,11 +54,10 @@ the following apply to the canvas of /...world and the canvas of /...network
 4. 2.1.1.1~2 do not apply if the overwritten content violates other rules
 ## 2.2. regenerating structures
 1. a Regenerating Structure is a collection of characters that are regenerated completely in the span of at most 24 hours
-2. you MUST NOT reinforce a Regenerating Structure if its contents do not change
+2. you MUST NOT reinforce a Regenerating Structure within 128 tiles of spawn if its contents do not change
 3. you MUST NOT reinforce a Regenerating Structure that covers more than 25 tiles and is within 32 tiles of spawn
 4. Regenerating Structures not under 2.2.2~3 are allowed under a Moderator's discretion
 5. violations of 2.2.2~4 SHOULD be handled by protecting the area of the structure
-6. if a person is known to have violated 2.2.2~4, they MAY be punished under an Operator's discretion
 ## 2.3. prohibited content
 1. you MUST NOT write or link to sexually explicit content
 2. you MUST NOT write or link to sexually suggestive images
@@ -66,5 +65,3 @@ the following apply to the canvas of /...world and the canvas of /...network
 4. you MUST NOT link to sexually suggestive text, with the exception of sending minimal content to give context to a topic
 5. any links to sexually suggestive content MUST be marked clearly as sexually suggestive content
 6. you MUST NOT depict graphic violence
-7. content violating 2.3.1~4,6 MUST be deleted as soon as possible
-8. links violating 2.3.5 MUST be marked clearly as sexually suggestive content

@@ -145,20 +145,33 @@ n_socket.onmessage = function(msg){
 		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
 				  data.op, data.admin, data.staff, data.color, data.date || Date.now(), data.dataObj);
-	} else if (data.kind == 'channel') {
+	} else if (data.kind == 'tag') {
 		n_chatId = data.id;
 	}
 }
 
-var n_channels = [];
-var n_channelWhitelist = [];
-var n_channelBlacklist = [];
-var n_channelWhitePriority = false;
+var n_tags = localStorage.n_tags ? localStorage.n_tags.split(',') : [];
+var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist.split(',') : [];
+var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist.split(',') : [];
+var n_tagWhitePriority = !!(localStorage.n_tagWhitePriority && localStorage.n_tagWhitePriority == 'true');
+var n_localStorageUpdates = {
+	tags: ()=>n_tags.join(','),
+	tagWhitelist: ()=>n_tagWhitelist.join(','),
+	tagBlacklist: ()=>n_tagBlacklist.join(','),
+	tagWhitePriority: ()=>!!n_tagWhitePriority,
+}
+function n_saveInStorage(id) {
+	if (!id) return;
+	let update = n_localStorageUpdates[id];
+	if (!update) return false;
+	return localStorage['n_'+id] = update(id);
+}
+
 sendChat = function() {
 	var chatText = elm.chatbar.value;
 	elm.chatbar.value = "";
 	var opts = {customMeta:{}};
-	opts.customMeta.channel = n_channels.join(',');
+	opts.customMeta.tag = n_tags.join(',');
 	if (selectedChatTab == 2) opts.location = 'network';
 	if(defaultChatColor != null) {
 		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
@@ -178,22 +191,28 @@ function n_makeFilterElement(opts={}, activated=true){
 		tr.action.addEventListener('click', function(){
 			tr.remove();
 			if (!tr.enable.checked) return;
-			let list = tr.white?n_channelWhitelist:n_channelBlacklist;
-			let i = list.indexOf(tr.channel);
-			if (i >= 0) list.splice(i, 1);
+			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
+			let i = list.indexOf(tr.tag);
+			if (i >= 0) {
+				list.splice(i, 1);
+				n_saveInStorage(tr.white ? 'tagWhitelist' : 'tagBlacklist');
+			}
 		});
 	}
 
 	tr.input = document.createElement('input');
 	tr.input.style.width = 'unset';
 	tr.input.style.minWidth = 'field'
-	tr.channel = tr.input.value = opts.value ?? '';
+	tr.tag = tr.input.value = opts.value ?? '';
 	if (activated) {
 		tr.input.addEventListener('change', function(){
 			if (!tr.enable.checked) return;
-			let list = tr.white?n_channelWhitelist:n_channelBlacklist;
-			let i = list.indexOf(tr.channel);
-			if (i >= 0) list[i] = tr.channel = tr.input.value;
+			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
+			let i = list.indexOf(tr.tag);
+			if (i >= 0) {
+				list[i] = tr.tag = tr.input.value;
+				n_saveInStorage(tr.white ? 'tw' : 'tb');
+			}
 		});
 		tr.input.addEventListener('keydown', function(e){
 			if (e.key == 'Enter') tr.blur();
@@ -216,11 +235,13 @@ function n_makeFilterElement(opts={}, activated=true){
 	if (activated) {
 		tr.type.addEventListener('click', function(){
 			if (tr.enable.checked) {
-				let list = tr.white?n_channelWhitelist:n_channelBlacklist;
-				let i = list.indexOf(tr.channel);
+				let list = tr.white?n_tagWhitelist:n_tagBlacklist;
+				let i = list.indexOf(tr.tag);
 				if (i >= 0) {
-					let olist = tr.white?n_channelBlacklist:n_channelWhitelist;
+					let olist = tr.white?n_tagBlacklist:n_tagWhitelist;
 					olist.push(...list.splice(i, 1));
+					n_saveInStorage('tagWhitelist');
+					n_saveInStorage('tagBlacklist');
 				}
 			}
 			tr.white = !tr.white;
@@ -239,12 +260,15 @@ function n_makeFilterElement(opts={}, activated=true){
 	tr.enable.checked = opts.enabled ?? true;
 	if (activated) {
 		tr.enable.addEventListener('change', function(){
-			let list = tr.white?n_channelWhitelist:n_channelBlacklist;
+			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 			if (tr.enable.checked) {
-				list.push(tr.channel);
+				list.push(tr.tag);
 			} else {
-				let i = list.indexOf(tr.channel);
-				if (i >= 0) list.splice(i, 1);
+				let i = list.indexOf(tr.tag);
+				if (i >= 0) {
+					list.splice(i, 1);
+					n_saveInStorage(tr.white ? 'tagWhitelist' : 'tagBlacklist');
+				}
 			}
 		});
 	}
@@ -255,10 +279,10 @@ function n_makeFilterElement(opts={}, activated=true){
 	tr.append(tr.action, tr.input, tr.type, tr.enable);
 	return tr;
 }
-function n_createChannelFilterModal(){
+function n_createTagFilterModal(){
 	var modal = w.ui.n_filterModal = new Modal();
 	modal.createForm();
-	modal.setFormTitle('Channel filters');
+	modal.setFormTitle('Tag filters');
 	modal.inputField.style.display = '';
 	modal.inputField.style.gridTemplateColumns = '';
 	modal.subField.childNodes[1].remove();
@@ -275,9 +299,10 @@ function n_createChannelFilterModal(){
 	tableBody.style.overflowY = 'auto';
 
 	priorityCheck.type = 'checkbox';
-	priorityCheck.checked = n_channelWhitePriority;
+	priorityCheck.checked = n_tagWhitePriority;
 	priorityCheck.addEventListener('change', function(){
-		n_channelWhitePriority = priorityCheck.checked;
+		n_tagWhitePriority = priorityCheck.checked;
+		n_saveInStorage('tagWhitePriority');
 	});
 	priorityLabel.innerText = ' Whitelist over blacklist';
 
@@ -300,7 +325,7 @@ function n_createChannelFilterModal(){
 	})
 	creator.action.addEventListener('click', function(){
 		if (creator.enable.checked) {
-			let list = creator.white?n_channelWhitelist:n_channelBlacklist;
+			let list = creator.white?n_tagWhitelist:n_tagBlacklist;
 			list.push(creator.input.value);
 		}
 		tableBody.append(n_makeFilterElement({
@@ -312,29 +337,29 @@ function n_createChannelFilterModal(){
 	tableHead.append(creator);
 
 	let recommendations = ['bot', 'nsfw'];
-	for (let channel of n_channelBlacklist) {
-		tableBody.append(n_makeFilterElement({value:channel}));
+	for (let tag of n_tagBlacklist) {
+		tableBody.append(n_makeFilterElement({value:tag}));
 		if (recommendations.length) {
-			let i = recommendations.indexOf(channel);
+			let i = recommendations.indexOf(tag);
 			if (i >= 0) recommendations.splice(i, 1);
 		}
 	}
-	for (let channel of n_channelWhitelist) {
-		tableBody.append(n_makeFilterElement({value:channel,white:true}));
+	for (let tag of n_tagWhitelist) {
+		tableBody.append(n_makeFilterElement({value:tag,white:true}));
 		if (recommendations.length) {
-			let i = recommendations.indexOf(channel);
+			let i = recommendations.indexOf(tag);
 			if (i >= 0) recommendations.splice(i, 1);
 		}
 	}
-	for (let channel of recommendations) {
-		tableBody.append(n_makeFilterElement({value:channel,enabled:false}));
+	for (let tag of recommendations) {
+		tableBody.append(n_makeFilterElement({value:tag,enabled:false}));
 	}
 
 	table.append(tableHead, tableBody);
 	modal.inputField.append(priorityCheck, priorityLabel,
 		document.createElement('br'), table);
 }
-n_createChannelFilterModal();
+n_createTagFilterModal();
 
 w.on('chatsend', function(e){
 	if (selectedChatTab != 2 || e.message.startsWith('/')) return;
@@ -433,18 +458,18 @@ function n_onChat(e, untimed) {
 
 	let whitelisted = false;
 	let blacklisted = false;
-	if (e.customMeta && e.customMeta.channel) {
-		let channels = e.customMeta.channel.split(',');
-		for (let channel of channels) {
-			if (n_channelBlacklist.includes(channel)) {
+	if (e.customMeta && e.customMeta.tag) {
+		let tags = e.customMeta.tag.split(',');
+		for (let tag of tags) {
+			if (n_tagBlacklist.includes(tag)) {
 				blacklisted = true;
 			}
-			if (n_channelWhitelist.includes(channel)) {
+			if (n_tagWhitelist.includes(tag)) {
 				whitelisted = true;
 			}
 		}
 	}
-	if (n_channelWhitePriority) {
+	if (n_tagWhitePriority) {
 		if (!whitelisted || blacklisted) return e.hide = true;
 	} else {
 		if (blacklisted && !whitelisted) return e.hide = true;
@@ -796,7 +821,7 @@ function nm_onTileUpdate(e) {
 				if (tile.content[char] == ' ') delete nm_deletedMessages[start+char];
 				let date = nm_parseLargeInt(tile.properties.color[char], tile.properties.bgcolor[char]);
 				nm_deletedMessages[start+char] = date;
-				if (e.channel != w.socketChannel) nm_deleteMessageDate(date);
+				if (e.tag != w.socketTag) nm_deleteMessageDate(date);
 			}
 			return true
 		}
@@ -936,6 +961,18 @@ function nm_getGlobalLimits() {
 	}
 	return limits;
 }
+var nm_deleteMode = false;
+function nm_setDeleteMode(state) {
+	if (state == undefined || state == null) state = !nm_deleteMode;
+	nm_deleteMode = state;
+	if (nm_deleteMode) {
+		n_chatfield.style.color = '#d00';
+		n_chatfield.style.backgroundColor = '#fee';
+	} else {
+		n_chatfield.style.color = '';
+		n_chatfield.style.backgroundColor = '';
+	}
+}
 function nm_sendDeleteMessageDate(date) {
 	let least = 0;
 	for (let i = 0; i < 256; i++) {
@@ -962,7 +999,7 @@ var n_deleteStreak = 0;
 w.doAnnounce('Creating multiple click bar...', 'nm_dblclick');
 w.doAnnounce('', 'nm_dblclick');
 n_chatfield.addEventListener("click", function(e){
-	if (e.detail < 2) return;
+	if (e.detail < 2 && !nm_deleteMode) return;
 	let element = e.target;
 	for (let i = 0; true; i++) {
 		if (element.tagName == 'DIV' && element.parentElement == n_chatfield) break;
@@ -976,19 +1013,18 @@ n_chatfield.addEventListener("click", function(e){
 		if (record.element == element) { message = record }
 	}
 	if (!message) return w.doAnnounce('No messages found.', 'nm_dblclick');
-	if (e.detail == 2) {
-		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.channel) {
-			return w.doAnnounce(`Message has channels: ${message.dataObj.customMeta.channel}`);
-		} else {
-			return w.doAnnounce('Message has no channels.');
-		}
-	}
-	if (e.detail == 3) {
+	if (nm_deleteMode) {
 		let closed = w.ui.announcements.nm_dblclick.bar.style.display;
 		if (closed) n_deleteStreak = 1;
 		else n_deleteStreak += 1;
 		w.doAnnounce(`Deleted ${n_deleteStreak} messages.`, 'nm_dblclick');
 		return nm_sendDeleteMessageDate(message.date);
+	} else if (e.detail == 2) {
+		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.tag) {
+			return w.doAnnounce(`Message has tags: ${message.dataObj.customMeta.tag}`);
+		} else {
+			return w.doAnnounce('Message has no tags.');
+		}
 	}
 });
 function nm_help() {
@@ -996,18 +1032,18 @@ function nm_help() {
 hi, thanks for using ...network's shared chat!
 to read more about ...network, go to the north of <a style="text-decoration:underline" href="javascript:client_commands.warp(['...network'])">/...network</a>!
 
-double click a message to see its channels.
-triple click a message to delete it ${nm_isMod?'for everyone':'locally'}.
+double click a message to see its tags.
+use /...delete to activate delete mode.
+in delete mode, you can click a message to delete it ${nm_isMod?'for everyone.':'locally (this will not save through refreshes).'}
 
-channels function like tags on a message, not like separate chatrooms.
-filter out bots messages using this command: /...channelf w+ bot
-
-use /...channel to view channels you are talking in, and /...channelf to view channels you have filtered.
-pass +[channel] to either of these commands to start filtering/talking in a channel.
-pass -[channel] to either of these commands to stop filtering/talking in a channel.
-pass =[channel] to either of these commands to overwrite your (filtered) channels.
-
-use /.c &lt;channel&gt; &lt;message&gt; to send a message in a channel without using it for other messages.`, true)
+tags mark messages as something, whether it be that it's sent by a bot (bot), or sexually suggestive (nsfw)
+these two tags are obligatory.
+note that excessively sending sexually suggestive messages is prohibited
+use /.t &lt;tag&gt; &lt;message&gt; to send a message in a tag without using it for other messages.
+use /...tag to view tags you are talking with. use /...tagf to filter tags.
+/...tag+ to start talking in tags, split by commas
+/...tag- to stop talking in tags, split by commas
+/...tag= to set what tags you're talking in, split by commas`, true)
 }
 function nm_helpmod() {
 	clientChatResponse(`=== ...network moderation help ===
@@ -1018,11 +1054,11 @@ view examples of how to use these commands in <a style="text-decoration:underlin
 == limiting help ==
 in updating commands, pass * to avoid updating the corresponding property.
 &lt;user&gt; is the username of the person to limit.
-&lt;type&gt; is "m"=mute / "l"=ratelimit / "c"=force channel / "C"=force unchannel.
+&lt;type&gt; is "m"=mute / "l"=ratelimit / "t"=force tag / "T"=force untag.
 &lt;expire&gt; is seconds to expiry. &lt;0 = forever.
 &lt;info&gt; is additional info:
 - ratelimit: info #1 is minimum seconds per message.
-- channel`, true)
+- force (un)tag: info #1~14 are tags in question.`, true)
 }
 function nm_registerCommands() {
 	register_chat_command('...helpmod', ()=>nm_helpmod(), null, 'help for ...network chat moderation');
@@ -1159,6 +1195,9 @@ function nm_registerCommands() {
 	}, ['y'], 'clear a global limit');
 
 	register_chat_command('...delete', function(args){
+		if (args.length == 0) {
+			return nm_setDeleteMode();
+		}
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
 		nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork.length-1-i].date);
@@ -1252,62 +1291,66 @@ register_chat_command('...listglobal', function(args) {
 	clientChatResponse(toChat);
 }, null, 'list all current global limits');
 
-register_chat_command('...channel', function(){
-	clientChatResponse(`Talking in ${n_channels.length} channels: `+n_channels.join(','));
-}, null, 'list all selected channels');
+register_chat_command('...tag', function(){
+	clientChatResponse(`Talking with ${n_tags.length} tags: `+n_tags.join(','));
+	n_saveInStorage('tags');
+}, null, 'list all selected tags');
 
-register_chat_command('...channel+', function(args){
-	let channels = args.join(' ').split(',');
+register_chat_command('...tag+', function(args){
+	let tags = args.join(' ').split(',');
 	let changed = [];
-	for (let channel of channels) {
-		let i = n_channels.indexOf(channel);
+	for (let tag of tags) {
+		let i = n_tags.indexOf(tag);
 		if (i < 0) {
-			n_channels.push(channel);
-			changed.push(channel);
+			n_tags.push(tag);
+			changed.push(tag);
 		}
 	}
-	if (!changed.length) return clientChatResponse(`${channels.join(',')} already selected`);
-	clientChatResponse(`Started talking in channels ${changed.join(',')}`);
-}, ['channels'], 'start talking in channels split by ,');
+	if (!changed.length) return clientChatResponse(`${tags.join(',')} already selected`);
+	clientChatResponse(`Started talking with tags ${changed.join(',')}`);
+	n_saveInStorage('tags');
+}, ['tags'], 'start talking with tags split by ,');
 
-register_chat_command('...channel-', function(args){
-	let channels = args.join(' ').split(',');
+register_chat_command('...tag-', function(args){
+	let tags = args.join(' ').split(',');
 	let changed = [];
-	for (let channel of channels) {
-		let i = n_channels.indexOf(channel);
+	for (let tag of tags) {
+		let i = n_tags.indexOf(tag);
 		if (i >= 0) {
-			n_channels.splice(i, 1);
-			changed.push(channel);
+			n_tags.splice(i, 1);
+			changed.push(tag);
 		}
 	}
-	if (!changed.length) return clientChatResponse(`${channels.join(',')} already unselected`);
-	clientChatResponse(`Stopped talking in channels ${changed.join(',')}`);
-}, ['channels'], 'stop talking in channels split by ,');
+	if (!changed.length) return clientChatResponse(`${tags.join(',')} already unselected`);
+	clientChatResponse(`Stopped talking with tags ${changed.join(',')}`);
+	n_saveInStorage('tags');
+}, ['tags'], 'stop talking with tags split by ,');
 
-register_chat_command('...channel=', function(args){
-	n_channels = args.join(' ').split(',');
-	clientChatResponse(`Talking in channels ${n_channels.join(',')}`);
-}, ['channels'], 'talk in channels split by ,');
+register_chat_command('...tag=', function(args){
+	n_tags = args.join(' ').split(',');
+	clientChatResponse(`Talking with tags ${n_tags.join(',')}`);
+	n_saveInStorage('tags');
+}, ['tags'], 'talk with tags split by ,');
 
-register_chat_command('...channelf', function(args){
+register_chat_command('...tagf', function(args){
 	w.ui.n_filterModal.open();
-}, ['[w/b][+/-/=]'], 'list all selected channel filters; set filter whitelist/blacklist');
+}, 'open the tag filter modal');
 
-register_chat_command('.c', function(args){
+register_chat_command('.t', function(args){
 	if (args.length < 2) return clientChatResponse(`Expected 2 arguments, received ${args.length}.`);
 	var chatText = args.slice(1).join(' ');
 	var opts = {customMeta:{}};
-	var channels = [...n_channels];
-	for (let channel of args[0].split(',')) {
-		if (!channels.includes(channel)) channels.push(channel);
+	var tags = [...n_tags];
+	for (let tag of args[0].split(',')) {
+		if (!tags.includes(tag)) tags.push(tag);
 	}
-	opts.customMeta.channel = channels.join(',');
+	opts.customMeta.tag = tags.join(',');
 	if (selectedChatTab == 2) opts.location = 'network';
 	if(defaultChatColor != null) {
 		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
 	}
 	api_chat_send(chatText, opts);
-}, ['channels', 'message'], 'quickly send a message in a channel');
+}, ['tags', 'message'], 'quickly send a message in a tag');
 
 register_chat_command('refresh', function(args){
 	if (!args[0] || args[0][0] != 't') network.chathistory();
