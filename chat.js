@@ -153,12 +153,12 @@ n_socket.onmessage = function(msg){
 var n_tags = localStorage.n_tags ? localStorage.n_tags.split(',') : [];
 var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist.split(',') : [];
 var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist.split(',') : [];
-var n_tagWhitePriority = !!(localStorage.n_tagWhitePriority && localStorage.n_tagWhitePriority == 'true');
+var n_tagHideDefault = !!(localStorage.n_tagHideDefault && localStorage.n_tagHideDefault == 'true');
 var n_localStorageUpdates = {
 	tags: ()=>n_tags.join(','),
 	tagWhitelist: ()=>n_tagWhitelist.join(','),
 	tagBlacklist: ()=>n_tagBlacklist.join(','),
-	tagWhitePriority: ()=>!!n_tagWhitePriority,
+	tagHideDefault: ()=>!!n_tagHideDefault,
 }
 function n_saveInStorage(id) {
 	if (!id) return;
@@ -299,12 +299,12 @@ function n_createTagFilterModal(){
 	tableBody.style.overflowY = 'auto';
 
 	priorityCheck.type = 'checkbox';
-	priorityCheck.checked = n_tagWhitePriority;
+	priorityCheck.checked = n_tagHideDefault;
 	priorityCheck.addEventListener('change', function(){
-		n_tagWhitePriority = priorityCheck.checked;
-		n_saveInStorage('tagWhitePriority');
+		n_tagHideDefault = priorityCheck.checked;
+		n_saveInStorage('tagHideDefault');
 	});
-	priorityLabel.innerText = ' Whitelist over blacklist';
+	priorityLabel.innerText = ' Messages hidden by default';
 
 	let creator = n_makeFilterElement({action:'➕'}, false);
 	creator.type.addEventListener('click', function(){
@@ -469,7 +469,7 @@ function n_onChat(e, untimed) {
 			}
 		}
 	}
-	if (n_tagWhitePriority) {
+	if (n_tagHideDefault) {
 		if (!whitelisted || blacklisted) return e.hide = true;
 	} else {
 		if (blacklisted && !whitelisted) return e.hide = true;
@@ -1334,7 +1334,7 @@ register_chat_command('...tag=', function(args){
 
 register_chat_command('...tagf', function(args){
 	w.ui.n_filterModal.open();
-}, 'open the tag filter modal');
+}, null, 'open the tag filter modal');
 
 register_chat_command('.t', function(args){
 	if (args.length < 2) return clientChatResponse(`Expected 2 arguments, received ${args.length}.`);

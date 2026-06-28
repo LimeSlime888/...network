@@ -12,7 +12,7 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
     1. this does not include satirisation of a user via imitation, however you MUST indicate clearly that you are not the original user
 3. you MUST NOT promote or normalise self-harm, pedophilia, or zoophilia
 4. you MUST NOT promote or engage in financial scams or fraud
-5. you MUST NOT link personally identifying information to a user if they intend to keep the information private. this includes, but is not limited to:
+5. you MUST NOT link personally identifying information (examples below) to a user if they intend to keep the information private
     1. area of residence, when specified more precisely than country
     2. legal name
     3. date of birth or age, when specified more precisely than 1 year
@@ -31,12 +31,11 @@ the following apply to the shared chat of ...network
 	2. bots that are force untagged from 'bot'; see T-type limits in [/...network/limits](https://owot.me/limits)
 ## 1.2. prohibited content
 1. you MUST NOT send or link to depictions of graphic violence
-2. you MUST NOT send or link to sexually explicit content
-3. you MUST NOT send or link to sexually suggestive images
-4. you MUST NOT send or link to sexually suggestive text
-	1. brief occasional sexually suggestive jokes/innuendos are allowed ONLY using the 'nsfw' tag
-	2. a user under 13 years of age MUST blacklist the 'nsfw' tag
-5. discussion of any sexual topics (e.g. porn addiction, safe sex) MUST be moved to outside of the ...network chat
+2. you MUST NOT send or link to sexually explicit/suggestive content
+	1. for text, this does not apply to undetailed descriptions of sexual acts/emotion
+	2. such descriptions SHOULD be as infrequent as possible and MUST be tagged with the 'nsfw' tag
+3. discussion of sexual topics MUST be tagged with the 'nsfw' tag
+	1. preteens (users under 13 years of age) MUST blacklist the 'nsfw' tag
 
 # 2. the canvas
 the following apply to the canvas of /...world and the canvas of /...network
@@ -59,9 +58,12 @@ the following apply to the canvas of /...world and the canvas of /...network
 4. Regenerating Structures not under 2.2.2~3 are allowed under a Moderator's discretion
 5. violations of 2.2.2~4 SHOULD be handled by protecting the area of the structure
 ## 2.3. prohibited content
-1. you MUST NOT write or link to sexually explicit content
-2. you MUST NOT write or link to sexually suggestive images
-3. you MUST NOT write sexually suggestive text
-4. you MUST NOT link to sexually suggestive text, with the exception of sending minimal content to give context to a topic
-5. any links to sexually suggestive content MUST be marked clearly as sexually suggestive content
-6. you MUST NOT depict graphic violence
+1. you MUST NOT depict graphic violence
+2. you MUST NOT write or link to sexually explicit/suggestive content
+	1. for text, this does not apply to undetailed descriptions of sexual acts/emotion
+	2. such descriptions SHOULD be as infrequent as possible
+	3. such descriptions MUST NOT stay where preteens are reasonably able to find them; see 2.3.3
+3. discussion of sexual topics MUST NOT be held where preteens are reasonably able to find them, by means such as:
+	1. exploring the canvas surrounding a landmark
+	2. disclosing the location publicly in a chat or canvas which preteens are intended to access (for nonexample NSFW marked worlds)
+	3. disclosing the location to a preteen directly
