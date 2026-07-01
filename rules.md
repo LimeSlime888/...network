@@ -19,7 +19,7 @@ the following apply to the canvas of [/...world](https://owot.me/...world) and t
     4. place of birth, when specified more precisely than country
 6. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
 7. a user SHOULD be excluded if deemed insufficiently mature by a Moderator's discretion  
-	a. as a rule of thumb, if you're quite less mature than qwas~holyterrorist (at 2026-04-13), you're out
+	a. as a rule of thumb, if you're quite less mature than qwas (at 2026-04-13), you're out
 
 # 1. the chat
 the following apply to the shared chat of ...network

@@ -17,7 +17,7 @@ the following apply to [/...world](https://owot.me/...world) canvas, [/...networ
     3. age, more precisely than 1 year
     4. where they were born, more precisely than the country
 5. violations of 0.1.3~5 MUST be handled by deleting the violating content as soon as possible
-6. if you're less mature than around qwas or holy-terrorist (at 2026-04-13) then you should not be here at all
+6. if you're less mature than around qwas (at 2026-04-13) then you should not be here at all
 
 # 1. the chat
 the following apply to /...network chat.
@@ -26,11 +26,11 @@ the following apply to /...network chat.
 2. bots must use the 'bot' tag, unless it bridges chatrooms or it's forced out of the tag
 ## 1.2. prohibited content
 1. don't send or link to gore
-2. don't send or link to sexually explicit content
-3. don't send or link to sexually suggestive images
-4. don't send or link to sexually suggestive text
-	1. brief occasional sexually suggestive jokes/innuendos are allowed
-5. discussion of sexual topics (e.g. porn addiction, safe sex) must be moved to outside of the ...network chat
+2. don't send or link to sexually explicit/suggestive content
+	1. except for undetailed text
+	2. please be reasonable with how often you send these. you must use the 'nsfw' tag
+3. discussion of sexual topics must be tagged with the 'nsfw' tag
+	1. preteens must blacklist the 'nsfw' tag
 
 # 2. the canvas
 the following apply to /...world canvas and /...network canvas.
@@ -53,9 +53,12 @@ the following apply to /...world canvas and /...network canvas.
 4. Regenerating Structures not under 2.2.2~3 are allowed under a Moderator's discretion
 5. violations of 2.2.2~4 SHOULD be handled by protecting the area of the structure
 ## 2.3. prohibited content
-1. don't write or link to sexually explicit content
-2. don't write or link to sexually suggestive images
-3. don't write sexually suggestive text
-4. don't link to sexually suggestive text, apart from sending minimal content to give context to a topic
-5. any links to sexually suggestive content must be marked as sexually suggestive content
-6. don't write or link to gore
+1. don't write or link to gore
+2. don't write or link to sexually explicit/suggestive content
+	1. except for undetailed text
+	2. please be reasonable with how often you send these.
+	3. such text MUST NOT stay where preteens are reasonably able to find them; see 2.3.3
+3. discussion of sexual topics MUST NOT be held where preteens are reasonably able to find them, by means such as:
+	1. exploring the canvas randomly
+	2. disclosing the location in a chat or canvas that preteens can view
+	3. disclosing the location to a preteen directly
