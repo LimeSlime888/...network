@@ -1021,9 +1021,9 @@ n_chatfield.addEventListener("click", function(e){
 		return nm_sendDeleteMessageDate(message.date);
 	} else if (e.detail == 2) {
 		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.tag) {
-			return w.doAnnounce(`Message has tags: ${message.dataObj.customMeta.tag}`);
+			return clientChatResponse(`Message has tags: ${message.dataObj.customMeta.tag}`);
 		} else {
-			return w.doAnnounce('Message has no tags.');
+			return clientChatResponse('Message has no tags.');
 		}
 	}
 });
