@@ -1,10 +1,8 @@
 const n_networkIndicator = "hiiii hello :333";
 
-var n_socket = new ReconnectingWebSocket(
-	'wss://ourworldoftext.com/...network/ws/');
+var n_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/ws/');
 elm.chat_page_tab.style.minWidth = '80px';
-if (state.worldModel.chat_global_tab || elm.chat_global_tab.style.display ==
-	'none') {
+if (state.worldModel.chat_global_tab || elm.chat_global_tab.style.display == 'none') {
 	elm.chat_upper.style.textAlign = '';
 	elm.chat_page_tab.style.display = '';
 	elm.usr_online.style.paddingLeft = '';
@@ -32,7 +30,7 @@ var chatAdditionsNetwork = [];
 var chatRecordsNetwork = [];
 var initNetworkTabOpen = false;
 var n_chatId;
-n_chatTab.addEventListener("click", function () {
+n_chatTab.addEventListener("click", function() {
 	n_chatTab.classList.add("chat_tab_selected");
 	elm.chat_page_tab.classList.remove("chat_tab_selected");
 	elm.chat_global_tab.classList.remove("chat_tab_selected");
@@ -44,12 +42,10 @@ n_chatTab.addEventListener("click", function () {
 	chatNetworkUnread = 0;
 
 	// from insertNewChatElementsIntoChatfield
-	for (let message of chatAdditionsNetwork) {
+	for(let message of chatAdditionsNetwork) {
 		buildChatElement(n_chatfield,
-			message.id, message.type, message.nickname, message
-			.message,
-			message.realUsername, message.op, message.admin, message
-			.staff,
+			message.id, message.type, message.nickname, message.message,
+			message.realUsername, message.op, message.admin, message.staff,
 			message.color, message.date, message.dataObj);
 		message.element = n_chatfield.lastElementChild;
 		chatRecordsNetwork.push(message);
@@ -57,52 +53,40 @@ n_chatTab.addEventListener("click", function () {
 	chatAdditionsNetwork.splice(0);
 
 	updateUnread();
-	if (!initNetworkTabOpen) {
+	if(!initNetworkTabOpen) {
 		initNetworkTabOpen = true;
 		n_chatfield.scrollTop = n_chatfield.scrollHeight;
 	}
 });
-n_chatfield.addEventListener('wheel', function (e) {
+n_chatfield.addEventListener('wheel', function(e){
 	e.stopPropagation();
 });
-elm.chat_page_tab.addEventListener('click', function () {
+elm.chat_page_tab.addEventListener('click', function(){
 	n_chatTab.classList.remove('chat_tab_selected');
 	n_chatfield.style.display = 'none';
 });
-elm.chat_global_tab.addEventListener('click', function () {
+elm.chat_global_tab.addEventListener('click', function(){
 	n_chatTab.classList.remove('chat_tab_selected');
 	n_chatfield.style.display = 'none';
 });
-n_socket.onopen = function () {
+n_socket.onopen = function(){
 	n_socket.send(`{"kind":"chathistory"}`);
 }
-
-function n_addChat(id, type, nickname, message, realUsername, op, admin, staff,
-	color, date, dataObj) {
-	if (!dataObj) dataObj = {};
-	if (!message) message = "";
-	if (!realUsername) realUsername = "";
-	if (!nickname) nickname = realUsername;
-	if (!color) color = assignColor(nickname);
+function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, color, date, dataObj) {
+	if(!dataObj) dataObj = {};
+	if(!message) message = "";
+	if(!realUsername) realUsername = "";
+	if(!nickname) nickname = realUsername;
+	if(!color) color = assignColor(nickname);
 	var msgData = {
-		id,
-		type,
-		nickname,
-		message,
-		realUsername,
-		op,
-		admin,
-		staff,
-		color,
-		date,
-		dataObj
+		id, type, nickname, message, realUsername, op, admin, staff, color, date, dataObj
 	};
 	chatAdditionsNetwork.push(msgData);
-	if (chatAdditionsNetwork.length > chatHistoryLimit) {
+	if(chatAdditionsNetwork.length > chatHistoryLimit) {
 		chatAdditionsNetwork.shift();
 	}
 	// from insertNewChatElementsIntoChatfield
-	for (let message of chatAdditionsNetwork) {
+	for(let message of chatAdditionsNetwork) {
 		buildChatElement(n_chatfield,
 			message.id, message.type, message.nickname, message.message,
 			message.realUsername, message.op, message.admin, message.staff,
@@ -113,42 +97,36 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff,
 	chatAdditionsNetwork.splice(0);
 	return msgData.element;
 }
-
-function clientChatResponse(message, html = false) {
+function clientChatResponse(message, html=false) {
 	if (html) {
 		message = message.replaceAll('\n', '<br>');
 	}
-	if (selectedChatTab == 2) return n_addChat(0, "user", "[ Client ]", message,
-		"Client", html, false, false, null, getDate());
-	addChat(null, 0, "user", "[ Client ]", message, "Client", html, false,
-		false, null, getDate());
+	if (selectedChatTab == 2) return n_addChat(0, "user", "[ Client ]", message, "Client", html, false, false, null, getDate());
+	addChat(null, 0, "user", "[ Client ]", message, "Client", html, false, false, null, getDate());
 }
-
 function getChatfield() {
-	if (selectedChatTab == 0) {
+	if(selectedChatTab == 0) {
 		return elm.page_chatfield;
-	} else if (selectedChatTab == 1) {
+	} else if(selectedChatTab == 1) {
 		return elm.global_chatfield;
-	} else if (selectedChatTab == 2) {
+	} else if(selectedChatTab == 2) {
 		return elm.network_chatfield;
 	}
 }
-
 function n_onhistory(data) {
 	w.emit("chathistory", data)
 	var page_prev = data.page_chat_prev;
 	var lastChatted = {};
-	for (var p = 0; p < page_prev.length; p++) {
+	for(var p = 0; p < page_prev.length; p++) {
 		var chat = page_prev[p];
 		n_onChat(chat, lastChatted);
 		if (chat.hide) continue;
 		var type = chatType(chat.registered, chat.nickname, chat.realUsername);
 		n_addChat(chat.id, type, chat.nickname, chat.message, chat.realUsername,
-			chat.op, chat.admin, chat.staff, chat.color, chat.date, chat
-			.dataObj);
+				  chat.op, chat.admin, chat.staff, chat.color, chat.date, chat.dataObj);
 	}
 }
-n_socket.onmessage = function (msg) {
+n_socket.onmessage = function(msg){
 	let data = JSON.parse(msg.data);
 	if (data.kind == 'chathistory') {
 		n_onhistory(data)
@@ -158,59 +136,49 @@ n_socket.onmessage = function (msg) {
 			++chatNetworkUnread;
 			updateUnread();
 		}
-		data.type = chatType(data.registered, data.nickname, data
-			.realUsername);
+		data.type = chatType(data.registered, data.nickname, data.realUsername);
 		data.customMeta ??= {};
 		data.dataObj ??= {};
 		data.dataObj.customMeta = data.customMeta
 		n_onChat(data);
 		if (data.hide) return;
-		n_addChat(data.id, data.type, data.nickname, data.message, data
-			.realUsername,
-			data.op, data.admin, data.staff, data.color, data.date ||
-			Date.now(), data.dataObj);
+		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
+				  data.op, data.admin, data.staff, data.color, data.date || Date.now(), data.dataObj);
 	} else if (data.kind == 'tag') {
 		n_chatId = data.id;
 	}
 }
 
 var n_tags = localStorage.n_tags ? localStorage.n_tags.split(',') : [];
-var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist
-	.split(',') : [];
-var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist
-	.split(',') : [];
-var n_tagHideDefault = !!(localStorage.n_tagHideDefault && localStorage
-	.n_tagHideDefault == 'true');
+var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist.split(',') : [];
+var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist.split(',') : [];
+var n_tagHideDefault = !!(localStorage.n_tagHideDefault && localStorage.n_tagHideDefault == 'true');
 var n_localStorageUpdates = {
-	tags: () => n_tags.join(','),
-	tagWhitelist: () => n_tagWhitelist.join(','),
-	tagBlacklist: () => n_tagBlacklist.join(','),
-	tagHideDefault: () => !!n_tagHideDefault,
+	tags: ()=>n_tags.join(','),
+	tagWhitelist: ()=>n_tagWhitelist.join(','),
+	tagBlacklist: ()=>n_tagBlacklist.join(','),
+	tagHideDefault: ()=>!!n_tagHideDefault,
 }
-
 function n_saveInStorage(id) {
 	if (!id) return;
 	let update = n_localStorageUpdates[id];
 	if (!update) return false;
-	return localStorage['n_' + id] = update(id);
+	return localStorage['n_'+id] = update(id);
 }
 
-sendChat = function () {
+sendChat = function() {
 	var chatText = elm.chatbar.value;
 	elm.chatbar.value = "";
-	var opts = {
-		customMeta: {}
-	};
+	var opts = {customMeta:{}};
 	opts.customMeta.tag = n_tags.join(',');
 	if (selectedChatTab == 2) opts.location = 'network';
-	if (defaultChatColor != null) {
-		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-
-			6);
+	if(defaultChatColor != null) {
+		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
 	}
 	api_chat_send(chatText, opts);
 }
 
-function n_makeFilterElement(opts = {}, activated = true) {
+function n_makeFilterElement(opts={}, activated=true){
 	// opts: {action, value, white, enabled}
 	let tr = document.createElement('tr');
 	tr.style.display = 'flex';
@@ -219,15 +187,14 @@ function n_makeFilterElement(opts = {}, activated = true) {
 	tr.action = document.createElement('button');
 	tr.action.innerText = opts.action ?? '❌';
 	if (activated) {
-		tr.action.addEventListener('click', function () {
+		tr.action.addEventListener('click', function(){
 			tr.remove();
 			if (!tr.enable.checked) return;
-			let list = tr.white ? n_tagWhitelist : n_tagBlacklist;
+			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 			let i = list.indexOf(tr.tag);
 			if (i >= 0) {
 				list.splice(i, 1);
-				n_saveInStorage(tr.white ? 'tagWhitelist' :
-					'tagBlacklist');
+				n_saveInStorage(tr.white ? 'tagWhitelist' : 'tagBlacklist');
 			}
 		});
 	}
@@ -237,16 +204,16 @@ function n_makeFilterElement(opts = {}, activated = true) {
 	tr.input.style.minWidth = 'field'
 	tr.tag = tr.input.value = opts.value ?? '';
 	if (activated) {
-		tr.input.addEventListener('change', function () {
+		tr.input.addEventListener('change', function(){
 			if (!tr.enable.checked) return;
-			let list = tr.white ? n_tagWhitelist : n_tagBlacklist;
+			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 			let i = list.indexOf(tr.tag);
 			if (i >= 0) {
 				list[i] = tr.tag = tr.input.value;
 				n_saveInStorage(tr.white ? 'tw' : 'tb');
 			}
 		});
-		tr.input.addEventListener('keydown', function (e) {
+		tr.input.addEventListener('keydown', function(e){
 			if (e.key == 'Enter') tr.blur();
 		});
 	}
@@ -265,13 +232,12 @@ function n_makeFilterElement(opts = {}, activated = true) {
 		tr.white = false;
 	}
 	if (activated) {
-		tr.type.addEventListener('click', function () {
+		tr.type.addEventListener('click', function(){
 			if (tr.enable.checked) {
-				let list = tr.white ? n_tagWhitelist : n_tagBlacklist;
+				let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 				let i = list.indexOf(tr.tag);
 				if (i >= 0) {
-					let olist = tr.white ? n_tagBlacklist :
-						n_tagWhitelist;
+					let olist = tr.white?n_tagBlacklist:n_tagWhitelist;
 					olist.push(...list.splice(i, 1));
 					n_saveInStorage('tagWhitelist');
 					n_saveInStorage('tagBlacklist');
@@ -292,16 +258,15 @@ function n_makeFilterElement(opts = {}, activated = true) {
 	tr.enable.type = 'checkbox';
 	tr.enable.checked = opts.enabled ?? true;
 	if (activated) {
-		tr.enable.addEventListener('change', function () {
-			let list = tr.white ? n_tagWhitelist : n_tagBlacklist;
+		tr.enable.addEventListener('change', function(){
+			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 			if (tr.enable.checked) {
 				list.push(tr.tag);
 			} else {
 				let i = list.indexOf(tr.tag);
 				if (i >= 0) {
 					list.splice(i, 1);
-					n_saveInStorage(tr.white ? 'tagWhitelist' :
-						'tagBlacklist');
+					n_saveInStorage(tr.white ? 'tagWhitelist' : 'tagBlacklist');
 				}
 			}
 		});
@@ -309,12 +274,11 @@ function n_makeFilterElement(opts = {}, activated = true) {
 
 	tr.input.style.marginLeft = '4px';
 	tr.type.style.marginLeft =
-		tr.enable.style.marginLeft = '6px';
+	tr.enable.style.marginLeft = '6px';
 	tr.append(tr.action, tr.input, tr.type, tr.enable);
 	return tr;
 }
-
-function n_createTagFilterModal() {
+function n_createTagFilterModal(){
 	var modal = w.ui.n_filterModal = new Modal();
 	modal.createForm();
 	modal.setFormTitle('Tag filters');
@@ -335,16 +299,14 @@ function n_createTagFilterModal() {
 
 	priorityCheck.type = 'checkbox';
 	priorityCheck.checked = n_tagHideDefault;
-	priorityCheck.addEventListener('change', function () {
+	priorityCheck.addEventListener('change', function(){
 		n_tagHideDefault = priorityCheck.checked;
 		n_saveInStorage('tagHideDefault');
 	});
 	priorityLabel.innerText = ' Messages hidden by default';
 
-	let creator = n_makeFilterElement({
-		action: '➕'
-	}, false);
-	creator.type.addEventListener('click', function () {
+	let creator = n_makeFilterElement({action:'➕'}, false);
+	creator.type.addEventListener('click', function(){
 		creator.white = !creator.white;
 		if (creator.white) {
 			creator.type.style.border = '1px solid black';
@@ -354,15 +316,15 @@ function n_createTagFilterModal() {
 			creator.type.style.background = 'black';
 		}
 	});
-	creator.input.addEventListener('keypress', function (e) {
+	creator.input.addEventListener('keypress', function(e){
 		if (e.key == 'Enter') {
 			creator.action.click();
 			creator.input.value = '';
 		}
 	})
-	creator.action.addEventListener('click', function () {
+	creator.action.addEventListener('click', function(){
 		if (creator.enable.checked) {
-			let list = creator.white ? n_tagWhitelist : n_tagBlacklist;
+			let list = creator.white?n_tagWhitelist:n_tagBlacklist;
 			list.push(creator.input.value);
 		}
 		tableBody.append(n_makeFilterElement({
@@ -375,29 +337,21 @@ function n_createTagFilterModal() {
 
 	let recommendations = ['bot', 'nsfw'];
 	for (let tag of n_tagBlacklist) {
-		tableBody.append(n_makeFilterElement({
-			value: tag
-		}));
+		tableBody.append(n_makeFilterElement({value:tag}));
 		if (recommendations.length) {
 			let i = recommendations.indexOf(tag);
 			if (i >= 0) recommendations.splice(i, 1);
 		}
 	}
 	for (let tag of n_tagWhitelist) {
-		tableBody.append(n_makeFilterElement({
-			value: tag,
-			white: true
-		}));
+		tableBody.append(n_makeFilterElement({value:tag,white:true}));
 		if (recommendations.length) {
 			let i = recommendations.indexOf(tag);
 			if (i >= 0) recommendations.splice(i, 1);
 		}
 	}
 	for (let tag of recommendations) {
-		tableBody.append(n_makeFilterElement({
-			value: tag,
-			enabled: false
-		}));
+		tableBody.append(n_makeFilterElement({value:tag,enabled:false}));
 	}
 
 	table.append(tableHead, tableBody);
@@ -406,12 +360,11 @@ function n_createTagFilterModal() {
 }
 n_createTagFilterModal();
 
-w.on('chatsend', function (e) {
+w.on('chatsend', function(e){
 	if (selectedChatTab != 2 || e.message.startsWith('/')) return;
 	let global = nm_getGlobalLimits();
 	let userl = nm_getLimitedUsers(!state.userModel.username);
-	let user = state.userModel.username ? state.userModel.username :
-		n_chatId;
+	let user = state.userModel.username ? state.userModel.username : n_chatId;
 	let date = Date.now();
 	let affects = {};
 	if (userl[user]) {
@@ -422,21 +375,15 @@ w.on('chatsend', function (e) {
 	if (!state.userModel.username && userl[0]) {
 		for (let type of Object.keys(userl[0])) {
 			if (affects[type]) {
-				if (type == 'l') affects[type] = Math.max(affects[type],
-					userl[0][type]);
-			} else {
-				affects[type] = userl[0][type]
-			}
+				if (type == 'l') affects[type] = Math.max(affects[type], userl[0][type]);
+			} else { affects[type] = userl[0][type] }
 		}
 	}
 	if (!nm_mods.includes(state.userModel.username)) {
 		for (let type of Object.keys(global)) {
 			if (affects[type]) {
-				if (type == 'l') affects[type] = Math.max(affects[type],
-					global[type]);
-			} else {
-				affects[type] = global[type]
-			}
+				if (type == 'l') affects[type] = Math.max(affects[type], global[type]);
+			} else { affects[type] = global[type] }
 		}
 	}
 	if (affects.m) {
@@ -446,24 +393,21 @@ w.on('chatsend', function (e) {
 			let expireString = expireDate.toISOString();
 			let msToExpire = affects.m - Date.now();
 			let relativeExpire = msToExpire / 1000;
-			return clientChatResponse(
-				`You're muted until ${expireString} (for ${relativeExpire}s).`
-			)
+			return clientChatResponse(`You're muted until ${expireString} (for ${relativeExpire}s).`)
 		} else {
 			return clientChatResponse(`You're muted indefinitely.`)
 		}
 	}
 	if (affects.l && nm_lastSentMessage) {
-		let offset = nm_lastSentMessage - date + affects.l * 1000;
+		let offset = nm_lastSentMessage - date + affects.l*1000;
 		if (offset > 0) {
 			e.cancel = true;
-			return clientChatResponse(
-				`Chat again in ${offset/1000} seconds.`);
+			return clientChatResponse(`Chat again in ${offset/1000} seconds.`);
 		}
 	}
 	nm_lastSentMessage = date;
 });
-network.chat = function (message, location, nickname, color, customMeta) {
+network.chat = function(message, location, nickname, color, customMeta) {
 	let data = {
 		kind: "chat",
 		nickname,
@@ -475,7 +419,6 @@ network.chat = function (message, location, nickname, color, customMeta) {
 	if (location == 'network') n_socket.send(JSON.stringify(data));
 	else network.transmit(data);
 }
-
 function updateUnread() {
 	var total = elm.total_unread;
 	var page = elm.page_unread;
@@ -486,34 +429,30 @@ function updateUnread() {
 	network.style.display = "none";
 	global.style.display = "none";
 	page.style.display = "none";
-	if (totalCount) {
+	if(totalCount) {
 		total.style.display = "";
 		total.innerText = totalCount > 99 ? "99+" : "(" + totalCount + ")";
 	}
-	if (chatOpen) { // don't want to stretch tab width before it's initially calculated
-		if (chatPageUnread) {
+	if(chatOpen) { // don't want to stretch tab width before it's initially calculated
+		if(chatPageUnread) {
 			page.style.display = "";
-			page.innerText = chatPageUnread > 99 ? "99+" : "(" +
-				chatPageUnread + ")";
+			page.innerText = chatPageUnread > 99 ? "99+" : "(" + chatPageUnread + ")";
 		}
-		if (chatGlobalUnread) {
+		if(chatGlobalUnread) {
 			global.style.display = "";
-			global.innerText = chatGlobalUnread > 99 ? "99+" : "(" +
-				chatGlobalUnread + ")";
+			global.innerText = chatGlobalUnread > 99 ? "99+" : "(" + chatGlobalUnread + ")";
 		}
-		if (chatNetworkUnread) {
+		if(chatNetworkUnread) {
 			network.style.display = "";
-			network.innerText = chatNetworkUnread > 99 ? "99+" : "(" +
-				chatNetworkUnread + ")";
+			network.innerText = chatNetworkUnread > 99 ? "99+" : "(" + chatNetworkUnread + ")";
 		}
 	}
 }
-
 function extractTagList(source) {
 	if (!source) return [];
 	let result = [];
 	let items = Array.isArray(source) ? source.flat(Infinity) : [source];
-
+	
 	for (let item of items) {
 		if (!item || item === 0) continue;
 		if (typeof item === 'string') {
@@ -524,15 +463,13 @@ function extractTagList(source) {
 			}
 			if (Array.isArray(item.tags)) {
 				for (let t of item.tags) {
-					if (typeof t === 'string' && t.trim()) result.push(t
-						.trim());
+					if (typeof t === 'string' && t.trim()) result.push(t.trim());
 				}
 			}
 		}
 	}
 	return result;
 }
-
 function n_onChat(e, untimed) {
 	e.network = true;
 	w.emit('chatmod', e);
@@ -557,33 +494,21 @@ function n_onChat(e, untimed) {
 	if (!e.realUsername && userl[0]) {
 		for (let type of Object.keys(userl[0])) {
 			if (affects[type]) {
-				if (type == 'l') affects[type] = Math.max(affects[type], userl[
-					0][type]);
-				else if (type == 't' || type == 'T') affects[type] = [...
-					affects[type], ...userl[0][type]
-				];
-			} else {
-				affects[type] = userl[0][type]
-			}
+				if (type == 'l') affects[type] = Math.max(affects[type], userl[0][type]);
+				else if (type == 't' || type == 'T') affects[type] = [...affects[type], ...userl[0][type]];
+			} else { affects[type] = userl[0][type] }
 		}
 	}
 	if (!nm_mods.includes(e.realUsername)) {
 		for (let type of Object.keys(global)) {
 			if (affects[type]) {
-				if (type == 'l') affects[type] = Math.max(affects[type], global[
-					type]);
-				else if (type == 't' || type == 'T') affects[type] = [...
-					affects[type], ...global[type]
-				];
-			} else {
-				affects[type] = global[type]
-			}
+				if (type == 'l') affects[type] = Math.max(affects[type], global[type]);
+				else if (type == 't' || type == 'T') affects[type] = [...affects[type], ...global[type]];
+			} else { affects[type] = global[type] }
 		}
 	}
 
-	if (affects.m) {
-		return e.hide = true;
-	}
+	if (affects.m) { return e.hide = true; }
 	if (affects.l && lastChatted[user]) {
 		let offset = date - lastChatted[user] - affects.l * 1000;
 		if (offset < 0) {
@@ -593,9 +518,9 @@ function n_onChat(e, untimed) {
 
 	e.customMeta ??= {};
 	let tagSet = new Set( // this will also dedupe tags
-		typeof e.customMeta.tag === "string" && e.customMeta.tag.length >
-		0 ?
-		e.customMeta.tag.split(",").map(t => t.trim()).filter(Boolean) : []
+		typeof e.customMeta.tag === "string" && e.customMeta.tag.length > 0
+			? e.customMeta.tag.split(",").map(t => t.trim()).filter(Boolean)
+			: []
 	);
 
 	// gimmickCellar
@@ -641,65 +566,42 @@ function n_onChat(e, untimed) {
 		if (blacklisted && !whitelisted) return e.hide = true;
 	}
 }
-clientChatResponse(
-	`&gt;&gt; the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> &lt;&lt;`,
-	true);
+clientChatResponse(`&gt;&gt; the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> &lt;&lt;`, true);
 if (state.worldModel.name == '...network') {
-	clientChatResponse(
-		`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`
-	);
+	clientChatResponse(`• please go there to interact with others, since /...network is simply a portal hub for exploration and ideally should not be cluttered •`);
 }
-clientChatResponse(
-	`• also remember the rules; they can be found at <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a> for section 1. this link can be recalled via /...rules •`,
-	true);
+clientChatResponse(`• also remember the rules; they can be found at <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a> for section 1. this link can be recalled via /...rules •`, true);
 
 // MODERATION
 
 var nm_mods = [];
 var nm_isMod = false;
 async function nm_fetchMods() {
-	nm_mods = await fetch(
-		"https://api.github.com/repos/LimeSlime888/...network/contents/moderators.txt?raw=true"
-	).then(e => e.json());
-	nm_mods = atob(nm_mods.content).split('\n').filter(e => e);
+	nm_mods = await fetch("https://api.github.com/repos/LimeSlime888/...network/contents/moderators.txt?raw=true").then(e=>e.json());
+	nm_mods = atob(nm_mods.content).split('\n').filter(e=>e);
 	if (nm_mods.includes(state.userModel.username)) {
 		nm_isMod = true;
 		nm_registerCommands();
-		clientChatResponse(
-			`>> welcome ${state.userModel.username}! <<
-you're a moderator for ...network. use /...help or go to /...network/limits for moderation help!`
-		);
-	} else {
-		nm_isMod = false
-	}
+		clientChatResponse(`>> welcome ${state.userModel.username}! <<
+you're a moderator for ...network. use /...help or go to /...network/limits for moderation help!`);
+	} else { nm_isMod = false }
 }
 nm_fetchMods();
 
-var nm_socket = new ReconnectingWebSocket(
-	'wss://ourworldoftext.com/...network/limits/ws/?hide=1');
-nm_socket.onmessage = function (msg) {
+var nm_socket = new ReconnectingWebSocket('wss://ourworldoftext.com/...network/limits/ws/?hide=1');
+nm_socket.onmessage = function(msg) {
 	var data = JSON.parse(msg.data);
 	var kind = data.kind;
 	if (nm_events[kind]) {
 		nm_events[kind](data);
 	}
 }
-nm_socket.onopen = function () {
-	nm_network.fetch({
-		minX: 0,
-		minY: 0,
-		maxX: 128,
-		maxY: 0
-	});
-	nm_network.fetch({
-		minX: 0,
-		minY: -1,
-		maxX: 2,
-		maxY: -1
-	});
+nm_socket.onopen = function() {
+	nm_network.fetch({minX: 0, minY: 0, maxX: 128, maxY: 0});
+	nm_network.fetch({minX: 0, minY: -1, maxX: 2, maxY: -1});
 }
 var nm_network = {
-	transmit: function (data) {
+	transmit: function(data) {
 		data = JSON.stringify(data);
 		try {
 			nm_socket.send(data);
@@ -707,7 +609,7 @@ var nm_network = {
 			console.warn("Transmission error");
 		}
 	},
-	write: function (edits, opts, callback) {
+	write: function(edits, opts, callback) {
 		if (!opts) opts = {};
 		var writeReq = {
 			kind: "write",
@@ -717,36 +619,32 @@ var nm_network = {
 		};
 		nm_network.transmit(writeReq);
 	},
-	fetch: function (fetches) {
+	fetch: function(fetches){
 		// fetches: [{minX, minY, maxX, maxY}]		
-		if (typeof fetches == "object" && !Array.isArray(fetches))
-			fetches = [fetches];
+		if(typeof fetches == "object" && !Array.isArray(fetches)) fetches = [fetches];
 		var fetchReq = {
 			fetchRectangles: fetches,
 			kind: "fetch"
 		};
 		nm_network.transmit(fetchReq);
 	},
-	clear_tile: function (position) {
+	clear_tile: function(position) {
 		// position: {tileX, tileY, [charX, charY, [width, height]]]}
 		var data = {
 			tileX: position.tileX,
 			tileY: position.tileY
 		};
-		var isPrecise = "charX" in position || "charY" in position ||
-			"charWidth" in position || "charHeight" in position;
-		if (isPrecise) {
+		var isPrecise = "charX" in position || "charY" in position || "charWidth" in position || "charHeight" in position;
+		if(isPrecise) {
 			data.charX = position.charX;
 			data.charY = position.charY;
-			if (!("tileX" in position || "tileY" in position)) {
+			if(!("tileX" in position || "tileY" in position)) {
 				data.tileX = Math.floor(data.charX / tileC);
 				data.tileY = Math.floor(data.charY / tileR);
-				data.charX = data.charX - Math.floor(data.charX /
-					tileC) * tileC;
-				data.charY = data.charY - Math.floor(data.charY /
-					tileR) * tileR;
+				data.charX = data.charX - Math.floor(data.charX / tileC) * tileC;
+				data.charY = data.charY - Math.floor(data.charY / tileR) * tileR;
 			}
-			if ("charWidth" in position && "charHeight" in position) {
+			if("charWidth" in position && "charHeight" in position) {
 				data.charWidth = position.charWidth;
 				data.charHeight = position.charHeight;
 			}
@@ -757,7 +655,7 @@ var nm_network = {
 		};
 		nm_network.transmit(req);
 	},
-	link: function (position, type, args) {
+	link: function(position, type, args) {
 		// position: {tileX, tileY, charX, charY}
 		// type: <url, coord>
 		// args: {url} or {x, y, relative}
@@ -767,17 +665,15 @@ var nm_network = {
 			charY: position.charY,
 			charX: position.charX
 		};
-		if (!("tileX" in position || "tileY" in position)) {
+		if(!("tileX" in position || "tileY" in position)) {
 			data.tileX = Math.floor(data.charX / tileC);
 			data.tileY = Math.floor(data.charY / tileR);
-			data.charX = data.charX - Math.floor(data.charX / tileC) *
-				tileC;
-			data.charY = data.charY - Math.floor(data.charY / tileR) *
-				tileR;
+			data.charX = data.charX - Math.floor(data.charX / tileC) * tileC;
+			data.charY = data.charY - Math.floor(data.charY / tileR) * tileR;
 		}
-		if (type == "url") {
+		if(type == "url") {
 			data.url = args.url;
-		} else if (type == "coord") {
+		} else if(type == "coord") {
 			data.link_tileX = args.x;
 			data.link_tileY = args.y;
 			data.relative = args.relative;
@@ -790,31 +686,26 @@ var nm_network = {
 	}
 };
 var nm_events = {
-	tileUpdate: function (e) {
+	tileUpdate: function(e) {
 		return nm_onTileUpdate(e)
 	},
-	fetch: function (e) {
+	fetch: function(e) {
 		for (let tile of Object.entries(e.tiles)) {
-			let obj = {
-				tiles: {}
-			};
+			let obj = {tiles: {}};
 			obj.tiles[tile[0]] = tile[1];
 			nm_onTileUpdate(obj);
 		}
 	}
 }
 
-function nm_parseLargeInt(fg = 0, bg = 0) {
+function nm_parseLargeInt(fg=0, bg=0) {
 	if (bg < 0) bg = 0;
 	return bg * 16777216 + fg
 }
-
-function nm_makeLargeInt(n = 0) {
-	return [Math.floor(n % 16777216), n < 16777216 ? -1 : Math.floor(n /
-		16777216)]
+function nm_makeLargeInt(n=0) {
+	return [Math.floor(n % 16777216), n < 16777216 ? -1 : Math.floor(n / 16777216)]
 }
-
-function nm_cleanLimit(n = 0, noInfoRow = false) {
+function nm_cleanLimit(n=0, noInfoRow=false) {
 	let date = getDate();
 	let x = Math.max(n, 0);
 	let y = Math.max(-n - 2, 0);
@@ -824,16 +715,13 @@ function nm_cleanLimit(n = 0, noInfoRow = false) {
 			writes.push([-1, 0, y, i, date, ' ', nextObjId++]);
 		}
 	} else {
-		for (let i = 0; i < (noInfoRow ? 112 : 127); i++) {
-			writes.push([0, x, Math.floor(i / 16), i % 16, date, ' ',
-				nextObjId++
-			]);
+		for (let i = 0; i < (noInfoRow?112:127); i++) {
+			writes.push([0, x, Math.floor(i / 16), i % 16, date, ' ', nextObjId++]);
 		}
 	}
 	return writes;
 }
-
-function nm_clearGlobalLimit(y = 0) {
+function nm_clearGlobalLimit(y=0) {
 	nm_network.clear_tile({
 		tileX: 0,
 		tileY: -1,
@@ -843,13 +731,12 @@ function nm_clearGlobalLimit(y = 0) {
 		charHeight: 1
 	});
 }
-
-function nm_updateLimit(x = 0, user, type = 'm', expire = 0, newId = false,
-	clean = true, ...info) {
+function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, ...info) {
 	// user < 0: global ratelimit
 	// user => 0: anon id
 	// expire = Date, Number
-	if (typeof user == 'string') {} else if (typeof user == 'number') {
+	if (typeof user == 'string') {} 
+	else if (typeof user == 'number') {
 		user = Math.round(user);
 	} else if (user !== null) {
 		return console.warn('Invalid user parameter:', user);
@@ -877,16 +764,11 @@ function nm_updateLimit(x = 0, user, type = 'm', expire = 0, newId = false,
 	let write_id;
 	if (newId) {
 		newId = Math.floor(Math.random() * 281474976710656);
-		write_id = [y, x, infoY, 15, date, '•', nextObjId++, ...nm_makeLargeInt(
-			newId)];
+		write_id = [y, x, infoY, 15, date, '•', nextObjId++, ...nm_makeLargeInt(newId)];
 	}
 
-	let write_type = type && [y, x, infoY, 0, date, type, nextObjId++, 0xaaaaaa,
-		0x444444
-	];
-	let write_expire = expire && [y, x, infoY, 1, date, '•', nextObjId++, ...
-		nm_makeLargeInt(expire)
-	];
+	let write_type = type && [y, x, infoY, 0, date, type, nextObjId++, 0xaaaaaa, 0x444444];
+	let write_expire = expire && [y, x, infoY, 1, date, '•', nextObjId++, ...nm_makeLargeInt(expire)];
 	let write_info = [];
 	let linksToCreate = [];
 
@@ -906,28 +788,18 @@ function nm_updateLimit(x = 0, user, type = 'm', expire = 0, newId = false,
 		}
 
 		let numVal = +val;
-		let isNum = typeof val === 'number' || (typeof val === 'string' && val
-			.trim() !== '' && !isNaN(numVal));
+		let isNum = typeof val === 'number' || (typeof val === 'string' && val.trim() !== '' && !isNaN(numVal));
 
 		if (!isNum) {
-
+			
 			let strVal = String(val);
-			write_info.push([y, x, infoY, 2 + index, date, '-', nextObjId++, 0,
-				-1
-			]);
+			write_info.push([y, x, infoY, 2 + index, date, '-', nextObjId++, 0, -1]);
 			linksToCreate.push({
-				position: {
-					tileY: y,
-					tileX: x,
-					charY: infoY,
-					charX: 2 + index
-				},
+				position: { tileY: y, tileX: x, charY: infoY, charX: 2 + index },
 				url: 'note:' + strVal
 			});
 		} else {
-			write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...
-				nm_makeLargeInt(numVal)
-			]);
+			write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...nm_makeLargeInt(numVal)]);
 		}
 	}
 
@@ -935,12 +807,11 @@ function nm_updateLimit(x = 0, user, type = 'm', expire = 0, newId = false,
 	if (typeof user == 'string') {
 		let i = 0;
 		for (let char of advancedSplit(user)) {
-			write_user.push([y, x, Math.floor(i / 16), i % 16, date, char,
-				nextObjId++
-			]);
+			write_user.push([y, x, Math.floor(i / 16), i % 16, date, char, nextObjId++]);
 			i += 1;
 		}
-	} else if (user < 0 || user == null) {} else {
+	} else if (user < 0 || user == null) {
+	} else {
 		write_user.push([y, x, 0, 0, date, '•', nextObjId++, 0xffffff, user]);
 	}
 
@@ -957,23 +828,18 @@ function nm_updateLimit(x = 0, user, type = 'm', expire = 0, newId = false,
 	if (write_expire) writes.push(write_expire);
 	if (write_id) writes.push(write_id);
 
-	nm_network.write(writes, {
-		preserve_links: true
-	});
+	nm_network.write(writes, { preserve_links: true });
 
 	if (linksToCreate.length > 0) {
 		setTimeout(() => {
 			for (let l of linksToCreate) {
-				nm_network.link(l.position, 'url', {
-					url: l.url
-				});
+				nm_network.link(l.position, 'url', { url: l.url });
 			}
 		}, 100);
 	}
 
 	flushWrites();
 }
-
 function nm_readLimit(tile, row = -1) {
 	// row 0~7 for user limits, or -1 for global limits
 	if (tile === undefined || tile === null) return;
@@ -982,8 +848,7 @@ function nm_readLimit(tile, row = -1) {
 	if (!tile.content)
 		return console.warn(`Attempted to read non-tile limit (no .content)`);
 	if (!tile.properties)
-		return console.warn(
-			`Attempted to read non-tile limit (no .properties)`);
+		return console.warn(`Attempted to read non-tile limit (no .properties)`);
 
 	let contentRowOffset = row < 0 ? 112 : row * 16;
 	let charY = row < 0 ? 7 : row;
@@ -993,12 +858,8 @@ function nm_readLimit(tile, row = -1) {
 
 	let hasColors = tile.properties.color && tile.properties.bgcolor;
 
-	let expire = hasColors ? nm_parseLargeInt(tile.properties.color[
-		contentRowOffset + 1], tile.properties.bgcolor[
-		contentRowOffset + 1]) : 0;
-	let id = hasColors ? nm_parseLargeInt(tile.properties.color[
-		contentRowOffset + 15], tile.properties.bgcolor[
-		contentRowOffset + 15]) : 0;
+	let expire = hasColors ? nm_parseLargeInt(tile.properties.color[contentRowOffset + 1], tile.properties.bgcolor[contentRowOffset + 1]) : 0;
+	let id = hasColors ? nm_parseLargeInt(tile.properties.color[contentRowOffset + 15], tile.properties.bgcolor[contentRowOffset + 15]) : 0;
 
 	let info = [];
 	let cellProps = tile.properties.cell_props;
@@ -1007,16 +868,15 @@ function nm_readLimit(tile, row = -1) {
 		let flatIdx = contentRowOffset + i;
 
 		let noteLink = cellProps?.[charY]?.[i]?.link;
-		if (noteLink && noteLink.type === "url" && typeof noteLink.url ===
-			"string" && noteLink.url.startsWith("note:")) {
+		if (noteLink && noteLink.type === "url" && typeof noteLink.url === "string" && noteLink.url.startsWith("note:")) {
 			let note = noteLink.url.slice(5);
 			try {
 				note = JSON.parse(note);
 			} catch (e) {}
 			info.push(note);
-		} else if (hasColors) {
-			let val = nm_parseLargeInt(tile.properties.color[flatIdx], tile
-				.properties.bgcolor[flatIdx]);
+		} 
+		else if (hasColors) {
+			let val = nm_parseLargeInt(tile.properties.color[flatIdx], tile.properties.bgcolor[flatIdx]);
 			info.push(val);
 		} else {
 			info.push(0);
@@ -1041,37 +901,28 @@ function nm_readLimit(tile, row = -1) {
 		user = -row - 1;
 	}
 
-	return {
-		type,
-		expire,
-		info,
-		user,
-		id
-	};
+	return { type, expire, info, user, id };
 }
 var nm_userLimits = [];
 var nm_globalLimits = Array(8);
 var nm_deletedMessages = Array(256);
 var nm_userLastChatted = {};
 var nm_lastSentMessage = 0;
-
 function nm_onTileUpdate(e) {
 	let pos = Object.keys(e.tiles)[0];
 	if (pos == '-1,1' || pos == '-1,2') {
 		let tile = e.tiles[pos];
 		let start = (pos == '-1,2') * 128;
 		if (!tile.properties.color || !tile.properties.bgcolor) {
-			for (let char = start; char < start + 128; char++) {
+			for (let char = start; char < start+128; char++) {
 				delete nm_deletedMessages[char]
 			}
 			return true
 		} else {
 			for (let char = 0; char < 128; char++) {
-				if (tile.content[char] == ' ') delete nm_deletedMessages[start +
-					char];
-				let date = nm_parseLargeInt(tile.properties.color[char], tile
-					.properties.bgcolor[char]);
-				nm_deletedMessages[start + char] = date;
+				if (tile.content[char] == ' ') delete nm_deletedMessages[start+char];
+				let date = nm_parseLargeInt(tile.properties.color[char], tile.properties.bgcolor[char]);
+				nm_deletedMessages[start+char] = date;
 				if (e.tag != w.socketTag) nm_deleteMessageDate(date);
 			}
 			return true
@@ -1085,12 +936,10 @@ function nm_onTileUpdate(e) {
 			limit.push(nm_readLimit(e.tiles[pos], row));
 		}
 		n = -1;
-	} else if (pos.slice(0, pos.indexOf(',')) == '0') {
+	} else if (pos.slice(0,pos.indexOf(',')) == '0') {
 		limit = nm_readLimit(e.tiles[pos]);
 		n = +pos.slice(2)
-	} else {
-		return false
-	}
+	} else { return false }
 	if (n < 0) {
 		for (let i = 0; i <= 7; i++) {
 			if (!limit || !limit[i]) {
@@ -1126,7 +975,6 @@ function nm_onTileUpdate(e) {
 	}
 	return true
 }
-
 function nm_leastUnexpiredX() {
 	let d = Date.now();
 	for (let x = 0; x < nm_userLimits.length; x++) {
@@ -1137,7 +985,6 @@ function nm_leastUnexpiredX() {
 	}
 	return nm_userLimits.length;
 }
-
 function nm_leastUnexpiredGlobal() {
 	let d = Date.now();
 	for (let x = 0; x <= 7; x++) {
@@ -1148,22 +995,17 @@ function nm_leastUnexpiredGlobal() {
 	}
 	return false;
 }
-
-function nm_addUserLimit(user, type = 'm', expire = Date.now() + 600e3, ...
-	info) {
+function nm_addUserLimit(user, type='m', expire=Date.now() + 600e3, ...info) {
 	let least = nm_leastUnexpiredX();
 	nm_updateLimit(least, user, type, expire, true, true, ...info);
 	return least;
 }
-
-function nm_addGlobalLimit(type = 'm', expire = Date.now() + 600e3, ...info) {
+function nm_addGlobalLimit(type='m', expire=Date.now() + 600e3, ...info) {
 	let least = nm_leastUnexpiredGlobal();
-	if (least === false) return clientChatResponse(
-		'Out of global limit space!');
-	nm_updateLimit(0, -least - 1, type, expire, true, true, ...info);
+	if (least === false) return clientChatResponse('Out of global limit space!');
+	nm_updateLimit(0, -least-1, type, expire, true, true, ...info);
 	return least;
 }
-
 function nm_getLimitedUsers(anon = false) {
 	let users = {};
 	for (let limit of nm_userLimits) {
@@ -1177,15 +1019,11 @@ function nm_getLimitedUsers(anon = false) {
 		}
 		let userObj = users[user];
 		if (limit.type == 'l') {
-			userObj.l = userObj.l ? Math.max(limit.info[0], userObj.l) : limit
-				.info[0];
+			userObj.l = userObj.l ? Math.max(limit.info[0], userObj.l) : limit.info[0];
 		} else if (limit.type == 'm') {
-			userObj.m = userObj.m ? Math.max(limit.expire, userObj.m) : limit
-				.expire;
+			userObj.m = userObj.m ? Math.max(limit.expire, userObj.m) : limit.expire;
 		} else if (limit.type == 't' || limit.type == 'T') {
-			userObj[limit.type] = userObj[limit.type] ? [...userObj[limit.type],
-				...limit.info
-			] : [...limit.info];
+			userObj[limit.type] = userObj[limit.type] ? [...userObj[limit.type], ...limit.info] : [...limit.info];
 		} else if (limit.info.length) {
 			userObj[limit.type] = limit.info;
 		} else {
@@ -1201,15 +1039,11 @@ function nm_getGlobalLimits() {
 		if (!limit) continue;
 		if (Date.now() >= limit.expire) continue;
 		if (limit.type == 'l') {
-			limits.l = limits.l ? Math.max(limit.info[0], limits.l) : limit
-				.info[0];
+			limits.l = limits.l ? Math.max(limit.info[0], limits.l) : limit.info[0];
 		} else if (limit.type == 'm') {
-			limits.m = limits.m ? Math.max(limit.expire, limits.m) : limit
-				.expire;
+			limits.m = limits.m ? Math.max(limit.expire, limits.m) : limit.expire;
 		} else if (limit.type == 't' || limit.type == 'T') {
-			limits[limit.type] = limits[limit.type] ? [...limits[limit.type],
-				...limit.info
-			] : [...limit.info];
+			limits[limit.type] = limits[limit.type] ? [...limits[limit.type], ...limit.info] : [...limit.info];
 		} else if (limit.info && limit.info.length) {
 			limits[limit.type] = limit.info;
 		} else {
@@ -1219,7 +1053,6 @@ function nm_getGlobalLimits() {
 	return limits;
 }
 var nm_deleteMode = false;
-
 function nm_setDeleteMode(state) {
 	if (state == undefined || state == null) state = !nm_deleteMode;
 	nm_deleteMode = state;
@@ -1231,25 +1064,18 @@ function nm_setDeleteMode(state) {
 		n_chatfield.style.backgroundColor = '';
 	}
 }
-
 function nm_sendDeleteMessageDate(date) {
 	let least = 0;
 	for (let i = 0; i < 256; i++) {
 		if (nm_deletedMessages[i]) continue;
-		least = i;
-		break
+		least = i; break
 	}
 	let now = Date.now();
-	let write_date = [-1, (least < 128) ? 1 : 2, Math.floor((least % 128) / 16),
-		least % 16, now, '•', nextObjId++, ...nm_makeLargeInt(date)
-	];
-	let write_delete = [-1, (least + 1 < 128 || least + 1 >= 256) ? 1 : 2, Math
-		.floor(((least + 1) % 128) / 16), (least + 1) % 16, now, ' '
-	];
+	let write_date = [-1, (least < 128) ? 1 : 2, Math.floor((least%128)/16), least%16, now, '•', nextObjId++, ...nm_makeLargeInt(date)];
+	let write_delete = [-1, (least+1 < 128 || least+1 >= 256) ? 1 : 2, Math.floor(((least+1)%128)/16), (least+1)%16, now, ' '];
 	nm_network.write([write_date, write_delete]);
 	return nm_deleteMessageDate(date);
 }
-
 function nm_deleteMessageDate(date) {
 	for (let i = 0; i < chatRecordsNetwork.length; i++) {
 		let message = chatRecordsNetwork[i];
@@ -1263,12 +1089,11 @@ function nm_deleteMessageDate(date) {
 var n_deleteStreak = 0;
 w.doAnnounce('Creating multiple click bar...', 'nm_dblclick');
 w.doAnnounce('', 'nm_dblclick');
-n_chatfield.addEventListener("click", function (e) {
+n_chatfield.addEventListener("click", function(e){
 	if (e.detail < 2 && !nm_deleteMode) return;
 	let element = e.target;
 	for (let i = 0; true; i++) {
-		if (element.tagName == 'DIV' && element.parentElement ==
-			n_chatfield) break;
+		if (element.tagName == 'DIV' && element.parentElement == n_chatfield) break;
 		if (i > 12) return;
 		if (!element) return;
 		if (element == n_chatfield) return;
@@ -1276,31 +1101,23 @@ n_chatfield.addEventListener("click", function (e) {
 	}
 	let message;
 	for (let record of chatRecordsNetwork) {
-		if (record.element == element) {
-			message = record
-		}
+		if (record.element == element) { message = record }
 	}
-	if (!message) return w.doAnnounce('No messages found.',
-		'nm_dblclick');
+	if (!message) return w.doAnnounce('No messages found.', 'nm_dblclick');
 	if (nm_deleteMode) {
 		let closed = w.ui.announcements.nm_dblclick.bar.style.display;
 		if (closed) n_deleteStreak = 1;
 		else n_deleteStreak += 1;
-		w.doAnnounce(`Deleted ${n_deleteStreak} messages.`,
-			'nm_dblclick');
+		w.doAnnounce(`Deleted ${n_deleteStreak} messages.`, 'nm_dblclick');
 		return nm_sendDeleteMessageDate(message.date);
 	} else if (e.detail == 2) {
-		if (message.dataObj && message.dataObj.customMeta && message
-			.dataObj.customMeta.tag) {
-			return clientChatResponse(
-				`Message has tags: ${message.dataObj.customMeta.tag}`
-			);
+		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.tag) {
+			return clientChatResponse(`Message has tags: ${message.dataObj.customMeta.tag}`);
 		} else {
 			return clientChatResponse('Message has no tags.');
 		}
 	}
 });
-
 function nm_help() {
 	clientChatResponse(`=== ...network help ===
 hi, thanks for using ...network's shared chat!
@@ -1319,7 +1136,6 @@ use /...tag to view tags you are talking with. use /...tagf to filter tags.
 /...tag- to stop talking in tags, split by commas
 /...tag= to set what tags you're talking in, split by commas`, true)
 }
-
 function nm_helpmod() {
 	clientChatResponse(`=== ...network moderation help ===
 hi, thanks for volunteering to moderate ...network's shared chat!
@@ -1335,12 +1151,10 @@ in updating commands, pass * to avoid updating the corresponding property.
 - ratelimit: info #1 is minimum seconds per message.
 - force (un)tag: info #1~14 are tags in question.`, true)
 }
-
 function nm_registerCommands() {
-	register_chat_command('...helpmod', () => nm_helpmod(), null,
-		'help for ...network chat moderation');
+	register_chat_command('...helpmod', ()=>nm_helpmod(), null, 'help for ...network chat moderation');
 
-	register_chat_command('...limit', function (args) {
+	register_chat_command('...limit', function(args) {
 		let duration = +args[2];
 		if (isNaN(duration))
 			return clientChatResponse('Invalid duration.');
@@ -1350,118 +1164,95 @@ function nm_registerCommands() {
 			args[2] = Date.now() + duration * 1000
 		}
 		let x = nm_addUserLimit(...args);
-		if (args[2] == Infinity) clientChatResponse(
-			`Limited ${args[0]} forever`)
-		else clientChatResponse(
-			`Limited ${args[0]} until ${new Date(args[2]).toISOString()}`
-		);
+		if (args[2] == Infinity) clientChatResponse(`Limited ${args[0]} forever`)
+		else clientChatResponse(`Limited ${args[0]} until ${new Date(args[2]).toISOString()}`);
 	}, ['user', 'type', 'expire', '...info'], 'apply a limit to a user');
 
-	register_chat_command('...limitid', function (args) {
-			args[0] = +args[0];
-			if (isNaN(args[0]))
-				return clientChatResponse('Invalid ID.');
-			let duration = Math.min(1e7, args[2]);
-			if (isNaN(duration))
-				return clientChatResponse('Invalid duration.');
-			if (duration <= 0) {
-				duration = args[2] = Infinity
-			} else {
-				args[2] = Date.now() + duration * 1000
-			}
-			let x = nm_addUserLimit(...args);
-			if (args[0] == 0) {
-				if (args[2] == Infinity) clientChatResponse(
-					`Limited all anons forever`)
-				else clientChatResponse(
-					`Limited all anons until ${new Date(args[2]).toISOString()}`
-				);
-			} else {
-				if (args[2] == Infinity) clientChatResponse(
-					`Limited ID ${args[0]} forever`)
-				else clientChatResponse(
-					`Limited ID ${args[0]} until ${new Date(args[2]).toISOString()}`
-				);
-			}
-		}, ['id', 'type', 'expire', '...info'],
-		'apply a limit to an anon id (0 = all)');
+	register_chat_command('...limitid', function(args) {
+		args[0] = +args[0];
+		if (isNaN(args[0]))
+			return clientChatResponse('Invalid ID.');
+		let duration = Math.min(1e7, args[2]);
+		if (isNaN(duration))
+			return clientChatResponse('Invalid duration.');
+		if (duration <= 0) {
+			duration = args[2] = Infinity
+		} else {
+			args[2] = Date.now() + duration * 1000
+		}
+		let x = nm_addUserLimit(...args);
+		if (args[0] == 0) {
+			if (args[2] == Infinity) clientChatResponse(`Limited all anons forever`)
+			else clientChatResponse(`Limited all anons until ${new Date(args[2]).toISOString()}`);
+		} else {
+			if (args[2] == Infinity) clientChatResponse(`Limited ID ${args[0]} forever`)
+			else clientChatResponse(`Limited ID ${args[0]} until ${new Date(args[2]).toISOString()}`);
+		}
+	}, ['id', 'type', 'expire', '...info'], 'apply a limit to an anon id (0 = all)');
 
-	register_chat_command('...limitall', function (args) {
-			let duration = +args[1];
-			if (isNaN(duration))
-				return clientChatResponse('Invalid duration.');
-			if (duration <= 0) {
-				duration = args[1] = Infinity
-			} else {
-				args[1] = Date.now() + duration * 1000
-			}
-			let x = nm_addGlobalLimit(...args);
-			if (args[1] == Infinity) clientChatResponse(
-				`Limited all with type ${args[0]} forever`)
-			else clientChatResponse(
-				`Limited all with type ${args[0]} until ${new Date(args[1]).toISOString()}`
-			);
-		}, ['type', 'expire', '...info'],
-		'apply a limit globally (mods are not affected)');
+	register_chat_command('...limitall', function(args) {
+		let duration = +args[1];
+		if (isNaN(duration))
+			return clientChatResponse('Invalid duration.');
+		if (duration <= 0) {
+			duration = args[1] = Infinity
+		} else {
+			args[1] = Date.now() + duration * 1000
+		}
+		let x = nm_addGlobalLimit(...args);
+		if (args[1] == Infinity) clientChatResponse(`Limited all with type ${args[0]} forever`)
+		else clientChatResponse(`Limited all with type ${args[0]} until ${new Date(args[1]).toISOString()}`);
+	}, ['type', 'expire', '...info'], 'apply a limit globally (mods are not affected)');
 
-	register_chat_command('...update', function (args) {
-			let limit = nm_userLimits[args[0]];
-			if (!limit) return clientChatResponse(
-				`User limit x=${+args[0]} does not exist`);
-			let duration = +args[3];
-			if (isNaN(duration)) {
-				duration = null
-			} else if (duration <= 0) {
-				duration = args[3] = Infinity
-			} else {
-				args[3] = Date.now() + duration * 1000
+	register_chat_command('...update', function(args) {
+		let limit = nm_userLimits[args[0]];
+		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist`);
+		let duration = +args[3];
+		if (isNaN(duration)) {
+			duration = null
+		} else if (duration <= 0) {
+			duration = args[3] = Infinity
+		} else {
+			args[3] = Date.now() + duration * 1000
+		}
+		for (let i in args) {
+			i = +i;
+			if (args[i] == '*') {
+				if (i == 2) args[2] = limit.type;
+				else args[i] = null;
 			}
-			for (let i in args) {
-				i = +i;
-				if (args[i] == '*') {
-					if (i == 2) args[2] = limit.type;
-					else args[i] = null;
-				}
-			}
-			while (args.length < 4) {
-				args.push(null)
-			}
-			args.splice(4, 0, false, false);
-			let x = nm_updateLimit(...args);
-		}, ['x', 'user', 'type', 'expire', '...info'],
-		'update a user limit');
+		}
+		while (args.length < 4) { args.push(null) }
+		args.splice(4, 0, false, false);
+		let x = nm_updateLimit(...args);
+	}, ['x', 'user', 'type', 'expire', '...info'], 'update a user limit');
 
-	register_chat_command('...updateid', function (args) {
-			let limit = nm_userLimits[args[0]];
-			if (!limit) return clientChatResponse(
-				`User limit x=${+args[0]} does not exist`);
-			let duration = +args[3];
-			if (isNaN(duration)) {
-				duration = null
-			} else if (duration <= 0) {
-				duration = args[3] = Infinity
-			} else {
-				args[3] = Date.now() + duration * 1000
+	register_chat_command('...updateid', function(args) {
+		let limit = nm_userLimits[args[0]];
+		if (!limit) return clientChatResponse(`User limit x=${+args[0]} does not exist`);
+		let duration = +args[3];
+		if (isNaN(duration)) {
+			duration = null
+		} else if (duration <= 0) {
+			duration = args[3] = Infinity
+		} else {
+			args[3] = Date.now() + duration * 1000
+		}
+		for (let i in args) {
+			i = +i;
+			if (args[i] == '*') {
+				if (i == 2) args[2] = limit.type;
+				else args[i] = null;
 			}
-			for (let i in args) {
-				i = +i;
-				if (args[i] == '*') {
-					if (i == 2) args[2] = limit.type;
-					else args[i] = null;
-				}
-			}
-			while (args.length < 4) {
-				args.push(null)
-			}
-			args.splice(4, 0, false, false);
-			let x = nm_updateLimit(...args);
-		}, ['x', 'id', 'type', 'expire', '...info'],
-		'update a user limit (to an anon id if required)');
-
-	register_chat_command('...updateglobal', function (args) {
+		}
+		while (args.length < 4) { args.push(null) }
+		args.splice(4, 0, false, false);
+		let x = nm_updateLimit(...args);
+	}, ['x', 'id', 'type', 'expire', '...info'], 'update a user limit (to an anon id if required)');
+	
+	register_chat_command('...updateglobal', function(args) {
 		let limit = nm_globalLimits[args[0]];
-		if (!limit) return clientChatResponse(
-			`User limit y=${+args[0]} does not exist`);
+		if (!limit) return clientChatResponse(`User limit y=${+args[0]} does not exist`);
 		let duration = +args[2];
 		if (isNaN(duration)) {
 			duration = null
@@ -1477,51 +1268,40 @@ function nm_registerCommands() {
 				else args[i] = null;
 			}
 		}
-		args[0] = -(+args[0]) - 1;
+		args[0] = -(+args[0])-1;
 		args.splice(0, 0, 0);
-		while (args.length < 4) {
-			args.push(null)
-		}
+		while (args.length < 4) { args.push(null) }
 		args.splice(4, 0, false, false);
 		let x = nm_updateLimit(...args);
 	}, ['y', 'type', 'expire', '...info'], 'update a global limit');
 
-	register_chat_command('...clear', function (args) {
-		nm_network.clear_tile({
-			tileX: +args[0],
-			tileY: 0
-		});
+	register_chat_command('...clear', function(args){
+		nm_network.clear_tile({tileX: +args[0], tileY: 0});
 		clientChatResponse(`Cleared global limit x=${+args[0]}.`)
 	}, ['x'], 'clear a user limit');
 
-	register_chat_command('...clearglobal', function (args) {
+	register_chat_command('...clearglobal', function(args){
 		nm_clearGlobalLimit(+args[0]);
 		clientChatResponse(`Cleared global limit y=${+args[0]}.`)
 	}, ['y'], 'clear a global limit');
 
-	register_chat_command('...delete', function (args) {
-			if (args.length == 0) {
-				return nm_setDeleteMode();
-			}
-			let i = +args[0];
-			if (isNaN(i)) return clientChatResponse('Invalid index.');
-			nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork
-				.length - 1 - i].date);
-		}, ['index'],
-		'delete a message (0 = last message, 1 = second last message etc.) - you can also do this by triple clicking a message'
-	);
+	register_chat_command('...delete', function(args){
+		if (args.length == 0) {
+			return nm_setDeleteMode();
+		}
+		let i = +args[0];
+		if (isNaN(i)) return clientChatResponse('Invalid index.');
+		nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork.length-1-i].date);
+	}, ['index'], 'delete a message (0 = last message, 1 = second last message etc.) - you can also do this by triple clicking a message');
 }
 
-register_chat_command('...help', () => nm_help(), null,
-	'help for ...network chat');
+register_chat_command('...help', ()=>nm_help(), null, 'help for ...network chat');
 
-register_chat_command('...rules', function () {
-	clientChatResponse(
-		'rules: <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a>, section 1',
-		true);
+register_chat_command('...rules', function() {
+	clientChatResponse('rules: <a style="text-decoration:underline" target="_blank" rel="noopener noreferrer" href="https://github.com/LimeSlime888/...network/blob/main/rules.md">https://github.com/LimeSlime888/...network/blob/main/rules.md</a>, section 1', true);
 }, null, 'recall the link to the ...network chat rules');
 
-register_chat_command('...list', function (args) {
+register_chat_command('...list', function(args) {
 	let limitCount = 0;
 	let toChats = [];
 	for (let limit of Object.entries(nm_userLimits)) {
@@ -1532,14 +1312,10 @@ register_chat_command('...list', function (args) {
 		if (typeof limit[1].user == 'string') {
 			userString = limit[1].user;
 		} else {
-			if (limit[1].user == 0) {
-				userString = 'all anons'
-			} else {
-				userString = '* ' + limit[1].user
-			}
+			if (limit[1].user == 0) { userString = 'all anons' }
+			else { userString = '* ' + limit[1].user }
 		}
-		toChat =
-			`• x = ${limit[0]}; ${userString}; type ${limit[1].type}`
+		toChat = `• x = ${limit[0]}; ${userString}; type ${limit[1].type}`
 		if (limit[1].expire >= 0xfffffffffff) {
 			toChat += `; expires never`;
 		} else {
@@ -1569,7 +1345,7 @@ register_chat_command('...list', function (args) {
 	clientChatResponse(toChat);
 }, null, 'list all current user limits');
 
-register_chat_command('...listglobal', function (args) {
+register_chat_command('...listglobal', function(args) {
 	let limitCount = 0;
 	let toChats = [];
 	for (let limit of Object.entries(nm_globalLimits)) {
@@ -1584,8 +1360,7 @@ register_chat_command('...listglobal', function (args) {
 			let expireString = expireDate.toISOString();
 			let msToExpire = limit[1].expire - Date.now();
 			let relativeExpireString = msToExpire / 1000 + 's';
-			toChat +=
-				`; expires ${expireString} (${relativeExpireString})`;
+			toChat += `; expires ${expireString} (${relativeExpireString})`;
 		}
 		let info = [...limit[1].info];
 		let lastNonZero = info.findLastIndex(e => e != 0);
@@ -1607,13 +1382,12 @@ register_chat_command('...listglobal', function (args) {
 	clientChatResponse(toChat);
 }, null, 'list all current global limits');
 
-register_chat_command('...tag', function () {
-	clientChatResponse(`Talking with ${n_tags.length} tags: ` + n_tags
-		.join(','));
+register_chat_command('...tag', function(){
+	clientChatResponse(`Talking with ${n_tags.length} tags: `+n_tags.join(','));
 	n_saveInStorage('tags');
 }, null, 'list all selected tags');
 
-register_chat_command('...tag+', function (args) {
+register_chat_command('...tag+', function(args){
 	let tags = args.join(' ').split(',');
 	let changed = [];
 	for (let tag of tags) {
@@ -1623,14 +1397,12 @@ register_chat_command('...tag+', function (args) {
 			changed.push(tag);
 		}
 	}
-	if (!changed.length) return clientChatResponse(
-		`${tags.join(',')} already selected`);
-	clientChatResponse(
-		`Started talking with tags ${changed.join(',')}`);
+	if (!changed.length) return clientChatResponse(`${tags.join(',')} already selected`);
+	clientChatResponse(`Started talking with tags ${changed.join(',')}`);
 	n_saveInStorage('tags');
 }, ['tags'], 'start talking with tags split by ,');
 
-register_chat_command('...tag-', function (args) {
+register_chat_command('...tag-', function(args){
 	let tags = args.join(' ').split(',');
 	let changed = [];
 	for (let tag of tags) {
@@ -1640,47 +1412,40 @@ register_chat_command('...tag-', function (args) {
 			changed.push(tag);
 		}
 	}
-	if (!changed.length) return clientChatResponse(
-		`${tags.join(',')} already unselected`);
-	clientChatResponse(
-		`Stopped talking with tags ${changed.join(',')}`);
+	if (!changed.length) return clientChatResponse(`${tags.join(',')} already unselected`);
+	clientChatResponse(`Stopped talking with tags ${changed.join(',')}`);
 	n_saveInStorage('tags');
 }, ['tags'], 'stop talking with tags split by ,');
 
-register_chat_command('...tag=', function (args) {
+register_chat_command('...tag=', function(args){
 	n_tags = args.join(' ').split(',');
 	clientChatResponse(`Talking with tags ${n_tags.join(',')}`);
 	n_saveInStorage('tags');
 }, ['tags'], 'talk with tags split by ,');
 
-register_chat_command('...tagf', function (args) {
+register_chat_command('...tagf', function(args){
 	w.ui.n_filterModal.open();
 }, null, 'open the tag filter modal');
 
-register_chat_command('.t', function (args) {
-	if (args.length < 2) return clientChatResponse(
-		`Expected 2 arguments, received ${args.length}.`);
+register_chat_command('.t', function(args){
+	if (args.length < 2) return clientChatResponse(`Expected 2 arguments, received ${args.length}.`);
 	var chatText = args.slice(1).join(' ');
-	var opts = {
-		customMeta: {}
-	};
+	var opts = {customMeta:{}};
 	var tags = [...n_tags];
 	for (let tag of args[0].split(',')) {
 		if (!tags.includes(tag)) tags.push(tag);
 	}
 	opts.customMeta.tag = tags.join(',');
 	if (selectedChatTab == 2) opts.location = 'network';
-	if (defaultChatColor != null) {
-		opts.color = "#" + ("00000" + defaultChatColor.toString(16))
-			.slice(-6);
+	if(defaultChatColor != null) {
+		opts.color = "#" + ("00000" + defaultChatColor.toString(16)).slice(-6);
 	}
 	api_chat_send(chatText, opts);
 }, ['tags', 'message'], 'quickly send a message in a tag');
 
-register_chat_command('refresh', function (args) {
+register_chat_command('refresh', function(args){
 	if (!args[0] || args[0][0] != 't') network.chathistory();
-	if (!args[1] || args[1][0] != 't') n_socket.send(
-		`{"kind":"chathistory"}`);
+	if (!args[1] || args[1][0] != 't') n_socket.send(`{"kind":"chathistory"}`);
 }, ['no_tp_and_g', 'no_network'], 'refresh chat history');
 
 if (localStorage.networkWarning != 'true') {
