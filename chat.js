@@ -97,6 +97,41 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 	chatAdditionsNetwork.splice(0);
 	return msgData.element;
 }
+w.doAnnounce = function(text, announceClass, html=true) {
+	if(!announceClass) {
+		announceClass = "main";
+	}
+	var an = w.ui.announcements[announceClass];
+	if(an) {
+		if(text) {
+			an.text[html?"innerHTML":"innerText"] = text;
+			an.bar.style.display = "";
+		} else {
+			an.bar.style.display = "none";
+		}
+	} else {
+		if(!text) return;
+		var anBar = document.createElement("div");
+		var anText = document.createElement("span");
+		var anClose = document.createElement("span");
+		anBar.className = "ui-vis";
+		anText.className = "announce_text";
+		anText[html?"innerHTML":"innerText"] = text;
+		anClose.className = "announce_close";
+		anClose.onclick = function() {
+			anBar.style.display = "none";
+		}
+		anClose.innerText = "X";
+		anBar.appendChild(anText);
+		anBar.appendChild(anClose);
+		elm.announce_container.appendChild(anBar);
+		w.ui.announcements[announceClass] = {
+			bar: anBar,
+			text: anText,
+			close: anClose
+		};
+	}
+}
 function clientChatResponse(message, html=false) {
 	if (html) {
 		message = message.replaceAll('\n', '<br>');
@@ -1021,9 +1056,9 @@ n_chatfield.addEventListener("click", function(e){
 		return nm_sendDeleteMessageDate(message.date);
 	} else if (e.detail == 2) {
 		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.tag) {
-			return clientChatResponse(`Message has tags: ${message.dataObj.customMeta.tag}`);
+			return w.doAnnounce(`Message has tags: ${message.dataObj.customMeta.tag}`, 'n_tags', false);
 		} else {
-			return clientChatResponse('Message has no tags.');
+			return w.doAnnounce('Message has no tags.', 'n_tags', false);
 		}
 	}
 });
@@ -1186,7 +1221,7 @@ function nm_registerCommands() {
 
 	register_chat_command('...clear', function(args){
 		nm_network.clear_tile({tileX: +args[0], tileY: 0});
-		clientChatResponse(`Cleared global limit x=${+args[0]}.`)
+		clientChatResponse(`Cleared user limit x=${+args[0]}.`)
 	}, ['x'], 'clear a user limit');
 
 	register_chat_command('...clearglobal', function(args){
