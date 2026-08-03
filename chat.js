@@ -91,6 +91,10 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 			message.id, message.type, message.nickname, message.message,
 			message.realUsername, message.op, message.admin, message.staff,
 			message.color, message.date, message.dataObj);
+		if(chatRecordsNetwork.length > chatHistoryLimit) { // missing case on buildChatElement
+			var rec = chatRecordsNetwork.shift();
+			rec.element.remove();
+		}
 		message.element = n_chatfield.lastElementChild;
 		chatRecordsNetwork.push(message);
 	}
@@ -1094,6 +1098,27 @@ in updating commands, pass * to avoid updating the corresponding property.
 &lt;info&gt; is additional info:
 - ratelimit: info #1 is minimum seconds per message.
 - force (un)tag: info #1~14 are tags in question.`, true)
+}
+client_commands.clear = function() {
+	if(selectedChatTab == 0) {
+		for(var i = 0; i < chatRecordsPage.length; i++) {
+			var rec = chatRecordsPage[i];
+			rec.element.remove();
+		}
+		chatRecordsPage.splice(0);
+	} else if(selectedChatTab == 1) {
+		for(var i = 0; i < chatRecordsGlobal.length; i++) {
+			var rec = chatRecordsGlobal[i];
+			rec.element.remove();
+		}
+		chatRecordsGlobal.splice(0);
+	} else if(selectedChatTab == 2) {
+		for(var i = 0; i < chatRecordsNetwork.length; i++) {
+			var rec = chatRecordsNetwork[i];
+			rec.element.remove();
+		}
+		chatRecordsNetwork.splice(0);
+	}
 }
 function nm_registerCommands() {
 	register_chat_command('...helpmod', ()=>nm_helpmod(), null, 'help for ...network chat moderation');
