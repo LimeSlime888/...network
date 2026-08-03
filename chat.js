@@ -821,7 +821,7 @@ function nm_onTileUpdate(e) {
 				if (tile.content[char] == ' ') delete nm_deletedMessages[start+char];
 				let date = nm_parseLargeInt(tile.properties.color[char], tile.properties.bgcolor[char]);
 				nm_deletedMessages[start+char] = date;
-				if (e.tag != w.socketTag) nm_deleteMessageDate(date);
+				if (e.channel != w.socketChannel) nm_deleteMessageDate(date);
 			}
 			return true
 		}
@@ -1201,7 +1201,7 @@ function nm_registerCommands() {
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
 		nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork.length-1-i].date);
-	}, ['index'], 'delete a message (0 = last message, 1 = second last message etc.) - you can also do this by triple clicking a message');
+	}, ['index'], 'delete a message (0 = last message, 1 = second last message etc.); pass no arguments to toggle delete mode (click to delete)');
 }
 
 register_chat_command('...help', ()=>nm_help(), null, 'help for ...network chat');
