@@ -205,7 +205,7 @@ var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist.s
 var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist.split(',') : [];
 var n_tagHideDefault = !!(localStorage.n_tagHideDefault && localStorage.n_tagHideDefault == 'true');
 var n_localStorageUpdates = {
-	tags: ()=>n_tags.join(','),
+	tags: ()=>{n_tagsDisplay.innerText="🏷️ "+n_tags.join(',');return n_tags.join(',')},
 	tagWhitelist: ()=>n_tagWhitelist.join(','),
 	tagBlacklist: ()=>n_tagBlacklist.join(','),
 	tagHideDefault: ()=>!!n_tagHideDefault,
@@ -216,6 +216,29 @@ function n_saveInStorage(id) {
 	if (!update) return false;
 	return localStorage['n_'+id] = update(id);
 }
+
+// modified from OWoTUI2
+var chat_lower = byId("chat_lower");
+chat_lower.style.display = "";
+var chat_sender;
+if (elm.chatbar.parentElement == chat_lower) {
+	chat_sender = document.createElement("div");
+	chat_sender.id = "chat_sender";
+	chat_sender.style.display = "flex";
+	chat_sender.style.width = "100%";
+	chat_lower.insertBefore(chat_sender, elm.chatbar);
+	for (let node of [...chat_lower.childNodes]) {
+		if (node != chat_sender) chat_sender.append(node);
+	}
+} else { chat_sender = elm.chatbar.parentElement }
+var n_tagsDisplay = document.createElement("span");
+n_tagsDisplay.style.display = "flex";
+n_tagsDisplay.innerText = "🏷️ "+n_tags.join(',');
+n_tagsDisplay.style.fontSize = "0.8em";
+n_tagsDisplay.style.margin = "3px";
+n_tagsDisplay.style.marginBottom = "0px";
+n_tagsDisplay.style.whiteSpaceCollapse = "preserve";
+chat_lower.insertBefore(n_tagsDisplay, chat_sender);
 
 sendChat = function() {
 	var chatText = elm.chatbar.value;
@@ -1364,7 +1387,6 @@ register_chat_command('...listglobal', function(args) {
 
 register_chat_command('...tag', function(){
 	clientChatResponse(`Talking with ${n_tags.length} tags: `+n_tags.join(','));
-	n_saveInStorage('tags');
 }, null, 'list all selected tags');
 
 register_chat_command('...tag+', function(args){
