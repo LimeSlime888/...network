@@ -43,12 +43,16 @@ n_chatTab.addEventListener("click", function() {
 
 	// from insertNewChatElementsIntoChatfield
 	for(let message of chatAdditionsNetwork) {
+		var lastRec = chatRecordsNetwork.length ? chatRecordsNetwork[chatRecordsNetwork.length - 1] : null;
+		if(!nm_isMod && lastRec && isChatMessageDuplicateRecord(lastRec, message, false)) {
+			lastRec.element._duplicateData.count++;
+			updateDuplicateChatGroup(lastRec.element);
+			continue;
+		}
 		buildChatElement(n_chatfield,
 			message.id, message.type, message.nickname, message.message,
 			message.realUsername, message.op, message.admin, message.staff,
 			message.color, message.date, message.dataObj);
-		message.element = n_chatfield.lastElementChild;
-		chatRecordsNetwork.push(message);
 	}
 	chatAdditionsNetwork.splice(0);
 
@@ -87,6 +91,14 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 	}
 	// from insertNewChatElementsIntoChatfield
 	for(let message of chatAdditionsNetwork) {
+		var lastRec = chatRecordsNetwork.length ? chatRecordsNetwork[chatRecordsNetwork.length - 1] : null;
+		if(!nm_isMod && lastRec && isChatMessageDuplicateRecord(lastRec, message, false)) {
+			lastRec.element._duplicateData.count++;
+			updateDuplicateChatGroup(lastRec.element);
+			continue;
+		}
+		message.rawMessage = message.message;
+		message.rawNickname = message.nickname;
 		buildChatElement(n_chatfield,
 			message.id, message.type, message.nickname, message.message,
 			message.realUsername, message.op, message.admin, message.staff,
@@ -176,10 +188,9 @@ n_socket.onmessage = function(msg){
 			updateUnread();
 		}
 		data.type = chatType(data.registered, data.nickname, data.realUsername);
-		if (data.customMeta) {
-			data.dataObj ??= {};
-			data.dataObj.customMeta = data.customMeta
-		}
+		data.dataObj ??= {};
+		if (data.customMeta) data.dataObj.customMeta = data.customMeta;
+		if (data.privateMessage) data.dataObj.privateMessage = data.privateMessage;
 		n_onChat(data);
 		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
@@ -1073,9 +1084,9 @@ to read more about ...network, go to the north of <a style="text-decoration:unde
 
 double click a message to see its tags.
 use /...delete to activate delete mode.
-in delete mode, you can click a message to delete it ${nm_isMod?'for everyone.':'locally (this will not save through refreshes).'}
+in delete mode, you can click a message to delete it ${nm_isMod?'for everyone.':'locally (but this will not save through refreshes).'}
 
-tags mark messages as something, whether it be that it's sent by a bot (bot), or sexually suggestive (nsfw)
+tags mark messages as something, whether it be that it's sent by a bot (bot), or it's a sexual joke (nsfw)
 these two tags are obligatory.
 note that excessively sending sexually suggestive messages is prohibited
 use /.t &lt;tag&gt; &lt;message&gt; to send a message in a tag without using it for other messages.
