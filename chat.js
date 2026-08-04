@@ -188,9 +188,10 @@ n_socket.onmessage = function(msg){
 			updateUnread();
 		}
 		data.type = chatType(data.registered, data.nickname, data.realUsername);
+		data.customMeta ??= {};
 		data.dataObj ??= {};
-		if (data.customMeta) data.dataObj.customMeta = data.customMeta;
-		if (data.privateMessage) data.dataObj.privateMessage = data.privateMessage;
+		data.dataObj.customMeta = data.customMeta
+    if (data.privateMessage) data.dataObj.privateMessage = data.privateMessage;
 		n_onChat(data);
 		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
@@ -522,6 +523,28 @@ function updateUnread() {
 		}
 	}
 }
+function extractTagList(source) {
+	if (!source) return [];
+	let result = [];
+	let items = Array.isArray(source) ? source.flat(Infinity) : [source];
+	
+	for (let item of items) {
+		if (!item || item === 0) continue;
+		if (typeof item === 'string') {
+			result.push(...item.split(',').map(s => s.trim()));
+		} else if (typeof item === 'object') {
+			if (typeof item.tag === 'string') {
+				result.push(...item.tag.split(',').map(s => s.trim()));
+			}
+			if (Array.isArray(item.tags)) {
+				for (let t of item.tags) {
+					if (typeof t === 'string' && t.trim()) result.push(t.trim());
+				}
+			}
+		}
+	}
+	return result;
+}
 function n_onChat(e, untimed) {
 	e.network = true;
 	w.emit('chatmod', e);
@@ -531,28 +554,13 @@ function n_onChat(e, untimed) {
 
 	let whitelisted = false;
 	let blacklisted = false;
-	if (e.customMeta && e.customMeta.tag) {
-		let tags = e.customMeta.tag.split(',');
-		for (let tag of tags) {
-			if (n_tagBlacklist.includes(tag)) {
-				blacklisted = true;
-			}
-			if (n_tagWhitelist.includes(tag)) {
-				whitelisted = true;
-			}
-		}
-	}
-	if (n_tagHideDefault) {
-		if (!whitelisted || blacklisted) return e.hide = true;
-	} else {
-		if (blacklisted && !whitelisted) return e.hide = true;
-	}
 
 	let userl = nm_getLimitedUsers(!e.realUsername);
 	let global = nm_getGlobalLimits();
 	let user = e.realUsername.toLowerCase() || e.id;
 	let lastChatted = untimed || nm_userLastChatted;
 	let affects = {};
+
 	if (userl[user]) {
 		for (let type of Object.keys(userl[user])) {
 			affects[type] = userl[user][type];
@@ -562,6 +570,7 @@ function n_onChat(e, untimed) {
 		for (let type of Object.keys(userl[0])) {
 			if (affects[type]) {
 				if (type == 'l') affects[type] = Math.max(affects[type], userl[0][type]);
+				else if (type == 't' || type == 'T') affects[type] = [...affects[type], ...userl[0][type]];
 			} else { affects[type] = userl[0][type] }
 		}
 	}
@@ -569,21 +578,67 @@ function n_onChat(e, untimed) {
 		for (let type of Object.keys(global)) {
 			if (affects[type]) {
 				if (type == 'l') affects[type] = Math.max(affects[type], global[type]);
+				else if (type == 't' || type == 'T') affects[type] = [...affects[type], ...global[type]];
 			} else { affects[type] = global[type] }
 		}
 	}
-	if (affects.m) { return e.hide = true }
+
+	if (affects.m) { return e.hide = true; }
 	if (affects.l && lastChatted[user]) {
-		let offset = date - lastChatted[user] - affects.l*1000;
+		let offset = date - lastChatted[user] - affects.l * 1000;
 		if (offset < 0) {
 			return e.hide = true;
 		}
 	}
+
+	e.customMeta ??= {};
+	let tagSet = new Set( // this will also dedupe tags
+		typeof e.customMeta.tag === "string" && e.customMeta.tag.length > 0
+			? e.customMeta.tag.split(",").map(t => t.trim()).filter(Boolean)
+			: []
+	);
+
+	// gimmickCellar
+	if (affects.t) {
+		let tags = extractTagList(affects.t);
+		for (let tag of tags) {
+			tagSet.add(tag);
+		}
+	}
+
+	if (affects.T) {
+		let tags = extractTagList(affects.T);
+		for (let tag of tags) {
+			tagSet.delete(tag);
+		}
+	}
+
+	e.customMeta.tag = Array.from(tagSet).join(",");
+
 	lastChatted[user] = date;
+
 	if (nm_mods.includes(e.realUsername)) {
 		e.dataObj ??= {};
 		e.dataObj.rankName = 'mod';
 		e.dataObj.rankColor = '#7befef';
+	}
+
+	if (e.customMeta.tag) {
+		let currentTags = e.customMeta.tag.split(',');
+		for (let tag of currentTags) {
+			if (n_tagBlacklist.includes(tag)) {
+				blacklisted = true;
+			}
+			if (n_tagWhitelist.includes(tag)) {
+				whitelisted = true;
+			}
+		}
+	}
+
+	if (n_tagHideDefault) {
+		if (!whitelisted || blacklisted) return e.hide = true;
+	} else {
+		if (blacklisted && !whitelisted) return e.hide = true;
 	}
 }
 clientChatResponse(`&gt;&gt; the intended centre of interaction for ...network is <a style="text-decoration:underline" href="javascript:client_commands.warp(['...world'])">/...world</a> &lt;&lt;`, true);
@@ -755,28 +810,30 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 	// user < 0: global ratelimit
 	// user => 0: anon id
 	// expire = Date, Number
-	if (typeof user == 'string') {} else if (typeof user == 'number') {
-		user = Math.round(user)
+	if (typeof user == 'string') {} 
+	else if (typeof user == 'number') {
+		user = Math.round(user);
 	} else if (user !== null) {
 		return console.warn('Invalid user parameter:', user);
 	}
+
 	if (expire !== null) {
 		if (expire instanceof Date) {
-			expire = expire.getTime()
+			expire = expire.getTime();
 		}
 		expire = Math.min(expire, 0xffffffffffff);
-		if (isNaN(expire))
-			throw new TypeError('Invalid expiry');
+		if (isNaN(expire)) throw new TypeError('Invalid expiry');
 	}
+
 	let date = getDate();
 	let infoY;
 	let y;
 	if (typeof user == 'number' && user < 0) {
 		infoY = -user - 1;
-		y = -1
+		y = -1;
 	} else {
 		infoY = 7;
-		y = 0
+		y = 0;
 	}
 
 	let write_id;
@@ -784,23 +841,40 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 		newId = Math.floor(Math.random() * 281474976710656);
 		write_id = [y, x, infoY, 15, date, '•', nextObjId++, ...nm_makeLargeInt(newId)];
 	}
+
 	let write_type = type && [y, x, infoY, 0, date, type, nextObjId++, 0xaaaaaa, 0x444444];
 	let write_expire = expire && [y, x, infoY, 1, date, '•', nextObjId++, ...nm_makeLargeInt(expire)];
 	let write_info = [];
-	if (!isNaN(+info[0])) {
-		if (type == 'l') info[0] = +info[0] * 256;
+	let linksToCreate = [];
+
+	if (type == 'l' && !isNaN(+info[0]) && typeof info[0] !== 'object') {
+		info[0] = +info[0] * 256;
 	}
+
 	for (let param of Object.entries(info)) {
 		let index = +param[0];
-		if (index > 11) continue;
-		if (isNaN(+param[1])) {
+		if (index > 12) continue; // max 13 info slots (charX = 2..14)
+
+		let val = param[1];
+		if (val === undefined || val === null) continue;
+
+		if (typeof val === 'object') {
+			val = JSON.stringify(val);
+		}
+
+		let numVal = +val;
+		let isNum = typeof val === 'number' || (typeof val === 'string' && val.trim() !== '' && !isNaN(numVal));
+
+		if (!isNum) {
+			
+			let strVal = String(val);
 			write_info.push([y, x, infoY, 2 + index, date, '-', nextObjId++, 0, -1]);
-			nm_network.link(
-				{tileY: y, tileX: x, charY: infoY, charX: 2 + index},
-				'url', {url: 'note:'+param[1]}
-			);
+			linksToCreate.push({
+				position: { tileY: y, tileX: x, charY: infoY, charX: 2 + index },
+				url: 'note:' + strVal
+			});
 		} else {
-			write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...nm_makeLargeInt(+param[1])])
+			write_info.push([y, x, infoY, 2 + index, date, '•', nextObjId++, ...nm_makeLargeInt(numVal)]);
 		}
 	}
 
@@ -811,28 +885,38 @@ function nm_updateLimit(x=0, user, type='m', expire=0, newId=false, clean=true, 
 			write_user.push([y, x, Math.floor(i / 16), i % 16, date, char, nextObjId++]);
 			i += 1;
 		}
-	} else if (user < 0 || user == null) {} else {
-		write_user.push([y, x, 0, 0, date, '•', nextObjId++, 0xffffff, user])
+	} else if (user < 0 || user == null) {
+	} else {
+		write_user.push([y, x, 0, 0, date, '•', nextObjId++, 0xffffff, user]);
 	}
 
 	let writes = [...write_info, ...write_user];
 
-	let cleanN;
-	if (typeof user == 'number' && user < 0) cleanN = user - 1;
-	else cleanN = x;
+	let cleanN = (typeof user == 'number' && user < 0) ? user - 1 : x;
 	if (clean) {
 		writes.unshift(...nm_cleanLimit(cleanN));
 	} else if (write_user.length) {
 		writes.unshift(...nm_cleanLimit(cleanN, true));
 	}
+
 	if (write_type) writes.push(write_type);
 	if (write_expire) writes.push(write_expire);
 	if (write_id) writes.push(write_id);
-	nm_network.write(writes);
+
+	nm_network.write(writes, { preserve_links: true });
+
+	if (linksToCreate.length > 0) {
+		setTimeout(() => {
+			for (let l of linksToCreate) {
+				nm_network.link(l.position, 'url', { url: l.url });
+			}
+		}, 100);
+	}
+
 	flushWrites();
 }
-function nm_readLimit(tile, row=-1) {
-	// row 0~7
+function nm_readLimit(tile, row = -1) {
+	// row 0~7 for user limits, or -1 for global limits
 	if (tile === undefined || tile === null) return;
 	if (!(tile instanceof Object))
 		return console.warn(`Attempted to read non-tile limit (not Object)`);
@@ -840,39 +924,59 @@ function nm_readLimit(tile, row=-1) {
 		return console.warn(`Attempted to read non-tile limit (no .content)`);
 	if (!tile.properties)
 		return console.warn(`Attempted to read non-tile limit (no .properties)`);
-	if (!tile.properties.color) return;
-	if (!tile.properties.bgcolor) return;
-	let type = tile.content[row < 0 ? 112 : row * 16];
+
+	let contentRowOffset = row < 0 ? 112 : row * 16;
+	let charY = row < 0 ? 7 : row;
+
+	let type = tile.content[contentRowOffset];
 	if (type == ' ') return;
-	let expire = nm_parseLargeInt(tile.properties.color[row < 0 ? 113 : row * 16 + 1], tile.properties.bgcolor[row < 0 ? 113 : row * 16 + 1]);
-	let id = nm_parseLargeInt(tile.properties.color[127], tile.properties.bgcolor[127]);
+
+	let hasColors = tile.properties.color && tile.properties.bgcolor;
+
+	let expire = hasColors ? nm_parseLargeInt(tile.properties.color[contentRowOffset + 1], tile.properties.bgcolor[contentRowOffset + 1]) : 0;
+	let id = hasColors ? nm_parseLargeInt(tile.properties.color[contentRowOffset + 15], tile.properties.bgcolor[contentRowOffset + 15]) : 0;
+
 	let info = [];
+	let cellProps = tile.properties.cell_props;
+
 	for (let i = 2; i < 15; i++) {
-		let j = i;
-		if (row >= 0)
-			j += row * 16;
-		else
-			j += 112;
-		info.push(nm_parseLargeInt(tile.properties.color[j], tile.properties.bgcolor[j]));
+		let flatIdx = contentRowOffset + i;
+
+		let noteLink = cellProps?.[charY]?.[i]?.link;
+		if (noteLink && noteLink.type === "url" && typeof noteLink.url === "string" && noteLink.url.startsWith("note:")) {
+			let note = noteLink.url.slice(5);
+			try {
+				note = JSON.parse(note);
+			} catch (e) {}
+			info.push(note);
+		} 
+		else if (hasColors) {
+			let val = nm_parseLargeInt(tile.properties.color[flatIdx], tile.properties.bgcolor[flatIdx]);
+			info.push(val);
+		} else {
+			info.push(0);
+		}
 	}
-	if (type == 'l') info[0] /= 256;
+
+	if (type == 'l' && typeof info[0] === 'number') info[0] /= 256;
+
 	let user;
 	if (row < 0) {
-		if (tile.properties.bgcolor[0] >= 0) {
+		if (hasColors && tile.properties.bgcolor[0] >= 0) {
 			user = tile.properties.bgcolor[0];
 		} else {
 			user = '';
 			for (let i = 0; i < 112; i++) {
 				let char = tile.content[i];
-				if (char == ' ')
-					break;
+				if (char == ' ') break;
 				user += char;
 			}
 		}
 	} else {
 		user = -row - 1;
 	}
-	return {type, expire, info, user, id};
+
+	return { type, expire, info, user, id };
 }
 var nm_userLimits = [];
 var nm_globalLimits = Array(8);
@@ -977,7 +1081,7 @@ function nm_addGlobalLimit(type='m', expire=Date.now() + 600e3, ...info) {
 	nm_updateLimit(0, -least-1, type, expire, true, true, ...info);
 	return least;
 }
-function nm_getLimitedUsers(anon=false) {
+function nm_getLimitedUsers(anon = false) {
 	let users = {};
 	for (let limit of nm_userLimits) {
 		if (!limit) continue;
@@ -988,44 +1092,33 @@ function nm_getLimitedUsers(anon=false) {
 		if (!users[user]) {
 			users[user] = {};
 		}
-		user = users[user];
+		let userObj = users[user];
 		if (limit.type == 'l') {
-			if (user.l) {
-				user.l = Math.max(limit.info[0], user.l);
-			} else {
-				user.l = limit.info[0];
-			}
+			userObj.l = userObj.l ? Math.max(limit.info[0], userObj.l) : limit.info[0];
 		} else if (limit.type == 'm') {
-			if (user.m) {
-				user.m = Math.max(limit.expire, user.m);
-			} else {
-				user.m = limit.expire;
-			}
+			userObj.m = userObj.m ? Math.max(limit.expire, userObj.m) : limit.expire;
+		} else if (limit.type == 't' || limit.type == 'T') {
+			userObj[limit.type] = userObj[limit.type] ? [...userObj[limit.type], ...limit.info] : [...limit.info];
 		} else if (limit.info.length) {
-			user[limit.type] = limit.info;
+			userObj[limit.type] = limit.info;
 		} else {
-			user[limit.type] = true;
+			userObj[limit.type] = true;
 		}
 	}
 	return users;
 }
+
 function nm_getGlobalLimits() {
 	let limits = {};
 	for (let limit of nm_globalLimits) {
 		if (!limit) continue;
 		if (Date.now() >= limit.expire) continue;
 		if (limit.type == 'l') {
-			if (limits.l) {
-				limits.l = Math.max(limit.info[0], limits.l);
-			} else {
-				limits.l = limit.info[0];
-			}
+			limits.l = limits.l ? Math.max(limit.info[0], limits.l) : limit.info[0];
 		} else if (limit.type == 'm') {
-			if (limits.m) {
-				limits.m = Math.max(limit.expire, limits.m);
-			} else {
-				limits.m = limit.expire;
-			}
+			limits.m = limits.m ? Math.max(limit.expire, limits.m) : limit.expire;
+		} else if (limit.type == 't' || limit.type == 'T') {
+			limits[limit.type] = limits[limit.type] ? [...limits[limit.type], ...limit.info] : [...limit.info];
 		} else if (limit.info && limit.info.length) {
 			limits[limit.type] = limit.info;
 		} else {
