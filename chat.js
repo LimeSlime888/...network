@@ -43,12 +43,16 @@ n_chatTab.addEventListener("click", function() {
 
 	// from insertNewChatElementsIntoChatfield
 	for(let message of chatAdditionsNetwork) {
+		var lastRec = chatRecordsNetwork.length ? chatRecordsNetwork[chatRecordsNetwork.length - 1] : null;
+		if(!nm_isMod && lastRec && isChatMessageDuplicateRecord(lastRec, message, false)) {
+			lastRec.element._duplicateData.count++;
+			updateDuplicateChatGroup(lastRec.element);
+			continue;
+		}
 		buildChatElement(n_chatfield,
 			message.id, message.type, message.nickname, message.message,
 			message.realUsername, message.op, message.admin, message.staff,
 			message.color, message.date, message.dataObj);
-		message.element = n_chatfield.lastElementChild;
-		chatRecordsNetwork.push(message);
 	}
 	chatAdditionsNetwork.splice(0);
 
@@ -87,15 +91,62 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 	}
 	// from insertNewChatElementsIntoChatfield
 	for(let message of chatAdditionsNetwork) {
+		var lastRec = chatRecordsNetwork.length ? chatRecordsNetwork[chatRecordsNetwork.length - 1] : null;
+		if(!nm_isMod && lastRec && isChatMessageDuplicateRecord(lastRec, message, false)) {
+			lastRec.element._duplicateData.count++;
+			updateDuplicateChatGroup(lastRec.element);
+			continue;
+		}
+		message.rawMessage = message.message;
+		message.rawNickname = message.nickname;
 		buildChatElement(n_chatfield,
 			message.id, message.type, message.nickname, message.message,
 			message.realUsername, message.op, message.admin, message.staff,
 			message.color, message.date, message.dataObj);
+		if(chatRecordsNetwork.length > chatHistoryLimit) { // missing case on buildChatElement
+			var rec = chatRecordsNetwork.shift();
+			rec.element.remove();
+		}
 		message.element = n_chatfield.lastElementChild;
 		chatRecordsNetwork.push(message);
 	}
 	chatAdditionsNetwork.splice(0);
 	return msgData.element;
+}
+w.doAnnounce = function(text, announceClass, html=true) {
+	if(!announceClass) {
+		announceClass = "main";
+	}
+	var an = w.ui.announcements[announceClass];
+	if(an) {
+		if(text) {
+			an.text[html?"innerHTML":"innerText"] = text;
+			an.bar.style.display = "";
+		} else {
+			an.bar.style.display = "none";
+		}
+	} else {
+		if(!text) return;
+		var anBar = document.createElement("div");
+		var anText = document.createElement("span");
+		var anClose = document.createElement("span");
+		anBar.className = "ui-vis";
+		anText.className = "announce_text";
+		anText[html?"innerHTML":"innerText"] = text;
+		anClose.className = "announce_close";
+		anClose.onclick = function() {
+			anBar.style.display = "none";
+		}
+		anClose.innerText = "X";
+		anBar.appendChild(anText);
+		anBar.appendChild(anClose);
+		elm.announce_container.appendChild(anBar);
+		w.ui.announcements[announceClass] = {
+			bar: anBar,
+			text: anText,
+			close: anClose
+		};
+	}
 }
 function clientChatResponse(message, html=false) {
 	if (html) {
@@ -140,6 +191,7 @@ n_socket.onmessage = function(msg){
 		data.customMeta ??= {};
 		data.dataObj ??= {};
 		data.dataObj.customMeta = data.customMeta
+    if (data.privateMessage) data.dataObj.privateMessage = data.privateMessage;
 		n_onChat(data);
 		if (data.hide) return;
 		n_addChat(data.id, data.type, data.nickname, data.message, data.realUsername,
@@ -154,7 +206,7 @@ var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist.s
 var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist.split(',') : [];
 var n_tagHideDefault = !!(localStorage.n_tagHideDefault && localStorage.n_tagHideDefault == 'true');
 var n_localStorageUpdates = {
-	tags: ()=>n_tags.join(','),
+	tags: ()=>{n_tagsDisplay.innerText="🏷️ "+n_tags.join(',');return n_tags.join(',')},
 	tagWhitelist: ()=>n_tagWhitelist.join(','),
 	tagBlacklist: ()=>n_tagBlacklist.join(','),
 	tagHideDefault: ()=>!!n_tagHideDefault,
@@ -165,6 +217,29 @@ function n_saveInStorage(id) {
 	if (!update) return false;
 	return localStorage['n_'+id] = update(id);
 }
+
+// modified from OWoTUI2
+var chat_lower = byId("chat_lower");
+chat_lower.style.display = "";
+var chat_sender;
+if (elm.chatbar.parentElement == chat_lower) {
+	chat_sender = document.createElement("div");
+	chat_sender.id = "chat_sender";
+	chat_sender.style.display = "flex";
+	chat_sender.style.width = "100%";
+	chat_lower.insertBefore(chat_sender, elm.chatbar);
+	for (let node of [...chat_lower.childNodes]) {
+		if (node != chat_sender) chat_sender.append(node);
+	}
+} else { chat_sender = elm.chatbar.parentElement }
+var n_tagsDisplay = document.createElement("span");
+n_tagsDisplay.style.display = "flex";
+n_tagsDisplay.innerText = "🏷️ "+n_tags.join(',');
+n_tagsDisplay.style.fontSize = "0.8em";
+n_tagsDisplay.style.margin = "3px";
+n_tagsDisplay.style.marginBottom = "0px";
+n_tagsDisplay.style.whiteSpaceCollapse = "preserve";
+chat_lower.insertBefore(n_tagsDisplay, chat_sender);
 
 sendChat = function() {
 	var chatText = elm.chatbar.value;
@@ -923,7 +998,7 @@ function nm_onTileUpdate(e) {
 				if (tile.content[char] == ' ') delete nm_deletedMessages[start+char];
 				let date = nm_parseLargeInt(tile.properties.color[char], tile.properties.bgcolor[char]);
 				nm_deletedMessages[start+char] = date;
-				if (e.tag != w.socketTag) nm_deleteMessageDate(date);
+				if (e.channel != w.socketChannel) nm_deleteMessageDate(date);
 			}
 			return true
 		}
@@ -1112,9 +1187,9 @@ n_chatfield.addEventListener("click", function(e){
 		return nm_sendDeleteMessageDate(message.date);
 	} else if (e.detail == 2) {
 		if (message.dataObj && message.dataObj.customMeta && message.dataObj.customMeta.tag) {
-			return clientChatResponse(`Message has tags: ${message.dataObj.customMeta.tag}`);
+			return w.doAnnounce(`Message has tags: ${message.dataObj.customMeta.tag}`, 'n_tags', false);
 		} else {
-			return clientChatResponse('Message has no tags.');
+			return w.doAnnounce('Message has no tags.', 'n_tags', false);
 		}
 	}
 });
@@ -1125,9 +1200,9 @@ to read more about ...network, go to the north of <a style="text-decoration:unde
 
 double click a message to see its tags.
 use /...delete to activate delete mode.
-in delete mode, you can click a message to delete it ${nm_isMod?'for everyone.':'locally (this will not save through refreshes).'}
+in delete mode, you can click a message to delete it ${nm_isMod?'for everyone.':'locally (but this will not save through refreshes).'}
 
-tags mark messages as something, whether it be that it's sent by a bot (bot), or sexually suggestive (nsfw)
+tags mark messages as something, whether it be that it's sent by a bot (bot), or it's a sexual joke (nsfw)
 these two tags are obligatory.
 note that excessively sending sexually suggestive messages is prohibited
 use /.t &lt;tag&gt; &lt;message&gt; to send a message in a tag without using it for other messages.
@@ -1150,6 +1225,27 @@ in updating commands, pass * to avoid updating the corresponding property.
 &lt;info&gt; is additional info:
 - ratelimit: info #1 is minimum seconds per message.
 - force (un)tag: info #1~14 are tags in question.`, true)
+}
+client_commands.clear = function() {
+	if(selectedChatTab == 0) {
+		for(var i = 0; i < chatRecordsPage.length; i++) {
+			var rec = chatRecordsPage[i];
+			rec.element.remove();
+		}
+		chatRecordsPage.splice(0);
+	} else if(selectedChatTab == 1) {
+		for(var i = 0; i < chatRecordsGlobal.length; i++) {
+			var rec = chatRecordsGlobal[i];
+			rec.element.remove();
+		}
+		chatRecordsGlobal.splice(0);
+	} else if(selectedChatTab == 2) {
+		for(var i = 0; i < chatRecordsNetwork.length; i++) {
+			var rec = chatRecordsNetwork[i];
+			rec.element.remove();
+		}
+		chatRecordsNetwork.splice(0);
+	}
 }
 function nm_registerCommands() {
 	register_chat_command('...helpmod', ()=>nm_helpmod(), null, 'help for ...network chat moderation');
@@ -1277,7 +1373,7 @@ function nm_registerCommands() {
 
 	register_chat_command('...clear', function(args){
 		nm_network.clear_tile({tileX: +args[0], tileY: 0});
-		clientChatResponse(`Cleared global limit x=${+args[0]}.`)
+		clientChatResponse(`Cleared user limit x=${+args[0]}.`)
 	}, ['x'], 'clear a user limit');
 
 	register_chat_command('...clearglobal', function(args){
@@ -1292,7 +1388,7 @@ function nm_registerCommands() {
 		let i = +args[0];
 		if (isNaN(i)) return clientChatResponse('Invalid index.');
 		nm_sendDeleteMessageDate(chatRecordsNetwork[chatRecordsNetwork.length-1-i].date);
-	}, ['index'], 'delete a message (0 = last message, 1 = second last message etc.) - you can also do this by triple clicking a message');
+	}, ['index'], 'delete a message (0 = last message, 1 = second last message etc.); pass no arguments to toggle delete mode (click to delete)');
 }
 
 register_chat_command('...help', ()=>nm_help(), null, 'help for ...network chat');
@@ -1384,7 +1480,6 @@ register_chat_command('...listglobal', function(args) {
 
 register_chat_command('...tag', function(){
 	clientChatResponse(`Talking with ${n_tags.length} tags: `+n_tags.join(','));
-	n_saveInStorage('tags');
 }, null, 'list all selected tags');
 
 register_chat_command('...tag+', function(args){
