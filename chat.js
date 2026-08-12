@@ -478,7 +478,7 @@ function n_createTagFilterModal(){
 				n_tagColors[creator.input.value] = [creator.color.value];
 			}
 			n_saveInStorage('tagColors');
-		}
+		} else { n_tagColors[creator.input.value].push(creator.color.value) }
 		tableBody.append(n_makeFilterElement({
 			value: creator.input.value,
 			white: creator.white,
