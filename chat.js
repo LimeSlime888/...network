@@ -108,6 +108,27 @@ function n_addChat(id, type, nickname, message, realUsername, op, admin, staff, 
 			rec.element.remove();
 		}
 		message.element = n_chatfield.lastElementChild;
+		// tag coloring
+		tc: if (message.dataObj?.customMeta?.tag) {
+			let tags = message.dataObj.customMeta.tag.split(',');
+			let colors = [];
+			for (let tag of tags) {
+				if (!n_tagColors[tag]) continue;
+				for (let col of n_tagColors[tag]) {
+					if (col[0] == '#') {
+						if (col.length == 5 || col.length == 9) {}
+						else if (col.length == 4) { colors.push(col+'2') }
+						else if (col.length == 7) { colors.push(col+'22') }
+					} else { colors.push(col) }
+				}
+			}
+			if (colors.length == 0) {break tc}
+			else if (colors.length == 1) {
+				message.element.style.background = colors[0];
+			} else {
+				message.element.style.background = `linear-gradient(90deg, ${colors.join(',')})`;
+			}
+		}
 		chatRecordsNetwork.push(message);
 	}
 	chatAdditionsNetwork.splice(0);
@@ -203,11 +224,13 @@ n_socket.onmessage = function(msg){
 var n_tags = localStorage.n_tags ? localStorage.n_tags.split(',') : [];
 var n_tagWhitelist = localStorage.n_tagWhitelist ? localStorage.n_tagWhitelist.split(',') : [];
 var n_tagBlacklist = localStorage.n_tagBlacklist ? localStorage.n_tagBlacklist.split(',') : [];
+var n_tagColors = localStorage.n_tagColors ? JSON.parse(localStorage.n_tagColors) : {nsfw:['#ff0000'],bot:['#00ffff']};
 var n_tagHideDefault = !!(localStorage.n_tagHideDefault && localStorage.n_tagHideDefault == 'true');
 var n_localStorageUpdates = {
 	tags: ()=>{n_tagsDisplay.innerText="🏷️ "+n_tags.join(',');return n_tags.join(',')},
 	tagWhitelist: ()=>n_tagWhitelist.join(','),
 	tagBlacklist: ()=>n_tagBlacklist.join(','),
+	tagColors: ()=>JSON.stringify(n_tagColors),
 	tagHideDefault: ()=>!!n_tagHideDefault,
 }
 function n_saveInStorage(id) {
@@ -263,6 +286,13 @@ function n_makeFilterElement(opts={}, activated=true){
 	if (activated) {
 		tr.action.addEventListener('click', function(){
 			tr.remove();
+			if (tr.color.value != '#ffffff' && n_tagColors[tr.tag]) {
+				let i = n_tagColors[tr.tag].indexOf(tr.color.value);
+				if (i >= 0) {
+					n_tagColors[tr.tag].splice(i, 1);
+					n_saveInStorage('tagColors');
+				}
+			}
 			if (!tr.enable.checked) return;
 			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 			let i = list.indexOf(tr.tag);
@@ -273,22 +303,62 @@ function n_makeFilterElement(opts={}, activated=true){
 		});
 	}
 
+	tr.color = document.createElement('input');
+	tr.color.type = 'color';
+	tr.color.style.inlineSize = 'unset';
+	tr.color.style.aspectRatio = '1';
+	tr.color.prevValue = tr.color.value = opts.color ?? '#ffffff';
+	if (activated) {
+		tr.color.addEventListener('change', function(){
+			if (!n_tagColors[tr.tag]) {
+				n_tagColors[tr.tag] = [];
+			}
+			let i = n_tagColors[tr.tag].indexOf(tr.color.prevValue);
+			if (tr.color.value == '#ffffff') {
+				if (i >= 0) {
+					n_tagColors[tr.tag].splice(i, 1);
+					n_saveInStorage('tagColors');
+				}
+			} else {
+				if (i >= 0) { n_tagColors[tr.tag][i] = tr.color.value }
+				else { n_tagColors[tr.tag].push(tr.color.value) }
+				n_saveInStorage('tagColors');
+			}
+			tr.color.prevValue = tr.color.value;
+		});
+	}
+
 	tr.input = document.createElement('input');
 	tr.input.style.width = 'unset';
-	tr.input.style.minWidth = 'field'
+	tr.input.style.minWidth = 'field';
 	tr.tag = tr.input.value = opts.value ?? '';
 	if (activated) {
 		tr.input.addEventListener('change', function(){
-			if (!tr.enable.checked) return;
 			let list = tr.white?n_tagWhitelist:n_tagBlacklist;
 			let i = list.indexOf(tr.tag);
+			{
+				if (!n_tagColors[tr.tag]) {
+					n_tagColors[tr.tag] = [];
+				}
+				let ci = n_tagColors[tr.tag].indexOf(tr.color.value);
+				if (tr.color.value != '#ffffff' && ci >= 0) {
+					if (!n_tagColors[tr.input.value]) {
+						n_tagColors[tr.input.value] = [];
+					}
+					n_tagColors[tr.tag].splice(ci, 1);
+					n_tagColors[tr.input.value].push(tr.color.value);
+					n_saveInStorage('tagColors');
+				}
+			}
+			if (!tr.enable.checked) return tr.tag = tr.input.value;
 			if (i >= 0) {
-				list[i] = tr.tag = tr.input.value;
+				list[i] = tr.input.value;
 				n_saveInStorage(tr.white ? 'tw' : 'tb');
 			}
+			return tr.tag = tr.input.value;
 		});
 		tr.input.addEventListener('keydown', function(e){
-			if (e.key == 'Enter') tr.blur();
+			if (e.key == 'Enter') tr.input.blur();
 		});
 	}
 
@@ -340,16 +410,17 @@ function n_makeFilterElement(opts={}, activated=true){
 				let i = list.indexOf(tr.tag);
 				if (i >= 0) {
 					list.splice(i, 1);
-					n_saveInStorage(tr.white ? 'tagWhitelist' : 'tagBlacklist');
 				}
 			}
+			n_saveInStorage(tr.white ? 'tagWhitelist' : 'tagBlacklist');
 		});
 	}
 
 	tr.input.style.marginLeft = '4px';
+	tr.color.style.marginLeft =
 	tr.type.style.marginLeft =
 	tr.enable.style.marginLeft = '6px';
-	tr.append(tr.action, tr.input, tr.type, tr.enable);
+	tr.append(tr.action, tr.color, tr.input, tr.type, tr.enable);
 	return tr;
 }
 function n_createTagFilterModal(){
@@ -400,11 +471,19 @@ function n_createTagFilterModal(){
 		if (creator.enable.checked) {
 			let list = creator.white?n_tagWhitelist:n_tagBlacklist;
 			list.push(creator.input.value);
+			n_saveInStorage(creator.white ? 'tagWhitelist' : 'tagBlacklist');
+		}
+		if (creator.color.value != '#ffffff') {
+			if (!n_tagColors[creator.input.value]) {
+				n_tagColors[creator.input.value] = [creator.color.value];
+			}
+			n_saveInStorage('tagColors');
 		}
 		tableBody.append(n_makeFilterElement({
 			value: creator.input.value,
 			white: creator.white,
 			enabled: creator.enable.checked,
+			color: creator.color.value
 		}));
 	})
 	tableHead.append(creator);
@@ -426,6 +505,20 @@ function n_createTagFilterModal(){
 	}
 	for (let tag of recommendations) {
 		tableBody.append(n_makeFilterElement({value:tag,enabled:false}));
+	}
+	// exhaust tag colors
+	for (let x of Object.entries(n_tagColors)) {
+		let tag = x[0];
+		let cols = x[1];
+		if (!cols.length) continue;
+		let i = 0;
+		for (let element of [...tableBody.children]) {
+			if (i >= cols.length) break;
+			if (element.tag == tag) element.color.value = cols[i++];
+		}
+		while (i < cols.length) {
+			tableBody.append(n_makeFilterElement({color:cols[i++],value:tag,enabled:false}));
+		}
 	}
 
 	table.append(tableHead, tableBody);
